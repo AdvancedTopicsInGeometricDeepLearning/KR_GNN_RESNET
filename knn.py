@@ -18,10 +18,11 @@ class KNNFaiss:
         self.test_label_faiss_output = []
 
     def fitModel(self, train_features, train_labels):
-        if len(train_features.shape) > 1:
-            self.gpu_index_flat = self.index = faiss.IndexFlatL2(train_features.shape[1])  # build the index
-        else:
-            self.gpu_index_flat = self.index = faiss.IndexFlatL2(train_features.shape[0])
+        # if len(train_features.shape) > 1:
+        #     self.gpu_index_flat = self.index = faiss.IndexFlatL2(train_features.shape[1])  # build the index
+        # else:
+        #     self.gpu_index_flat = self.index = faiss.IndexFlatL2(train_features.shape[0])
+        self.gpu_index_flat = self.index = faiss.IndexFlatL2(train_features.shape[1])
         try:
             res = faiss.StandardGpuResources() if torch.cuda.is_available() else faiss.S
             self.gpu_index_flat = faiss.index_cpu_to_gpu(res, self.gpu_idx, self.gpu_index_flat)
