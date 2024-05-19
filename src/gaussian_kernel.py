@@ -1,5 +1,5 @@
 """
-File that implements the gaussian kernel.
+File that implements the Kernel Regression (KR) loss.
 """
 
 import torch
@@ -56,7 +56,8 @@ class for calculating the KR loss
 
 class GaussianKernel:
 
-    def __init__(self, max_samples: int = -1, kernel_lambda: float = 1.0, add_regularization: bool = False):
+    def __init__(self, max_samples: int = -1, kernel_lambda: float = 1.0,
+                 add_regularization: bool = False):
         self._max_samples = max_samples
         self._kernel_lambda = kernel_lambda
         self._add_regularization = add_regularization
@@ -77,10 +78,11 @@ class GaussianKernel:
         K = self.compute_kernel(x, x)
         lambda_, U = EigenDecompositionV2.apply(K)
         P = U @ torch.diag(
-            lambda_.clamp(min=0.0, max=1.0)) @ U.T  # Projection matrix, approximation due to numeric instabilities
+            lambda_.clamp(min=0.0,
+                          max=1.0)) @ U.T  # Projection matrix, approximation due to numeric instabilities
         y_perp = y - P.to(y.device) @ y
         d_ = ((y_perp ** 2 + 1e-5).mean(0) ** 0.5).mean()
         if self._add_regularization:
-            d_ += (0.5 - K.mean())**2  # Keep the K with 0.5 average
+            d_ += (0.5 - K.mean()) ** 2  # Keep the K with 0.5 average
 
         return d_

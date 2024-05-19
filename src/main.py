@@ -28,8 +28,8 @@ def run_experiment():
     model = PytorchLightningModuleNodeClassifier(
         in_features=dataset.num_node_features,
         hidden_dim=32,
-        out_features=7,
-        depth=4,
+        out_features=dataset.num_classes,
+        depth=40,
         use_batch_normalization=True,
         class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
         class_of_activation=torch.nn.ELU
@@ -47,7 +47,7 @@ def run_experiment():
     # test model to get accuracy
     acc = trainer.test(model=model, dataloaders=node_data_loader)
 
-    print("acc", acc)
+    return acc[0]
 
 
 """
@@ -58,7 +58,8 @@ main function
 
 
 def main():
-    run_experiment()
+    acc1 = run_experiment()
+    print(f"acc1 = {acc1}")
 
 
 """

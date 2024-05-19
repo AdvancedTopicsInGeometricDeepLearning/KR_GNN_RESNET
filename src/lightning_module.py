@@ -4,12 +4,9 @@ This file implements Pytorch lightning module to make training of pytorch models
 from typing import Optional
 
 import lightning as L
-import torch
 import torch.nn.functional as F
-import torch_geometric
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import optim
-from torch_geometric.datasets import Planetoid
 
 from pytorch_model_classifier import GNNNodeClassifier
 
@@ -27,15 +24,25 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     ***********************************************************************************************
     """
 
-    def __init__(self, in_features: int, hidden_dim: int, out_features: int, depth: int,
-                 use_batch_normalization: bool,
-                 class_of_gnn, gnn_params: dict[str, any], class_of_activation):
+    def __init__(
+            self,
+            in_features: int,
+            hidden_dim: int,
+            out_features: int,
+            depth: int,
+            use_batch_normalization: bool,
+            class_of_gnn,
+            gnn_params: dict[str, any],
+            class_of_activation,
+    ):
         super().__init__()
-        self.model = GNNNodeClassifier(in_features=in_features, hidden_dim=hidden_dim,
-                                       out_features=out_features, depth=depth,
-                                       use_batch_normalization=use_batch_normalization,
-                                       class_of_gnn=class_of_gnn, gnn_params=gnn_params,
-                                       class_of_activation=class_of_activation)
+        self.model = GNNNodeClassifier(
+            in_features=in_features, hidden_dim=hidden_dim,
+            out_features=out_features, depth=depth,
+            use_batch_normalization=use_batch_normalization,
+            class_of_gnn=class_of_gnn, gnn_params=gnn_params,
+            class_of_activation=class_of_activation
+        )
 
     def forward(self, data, mode="train"):
         # x, edge_index = data.x, data.edge_index
@@ -74,33 +81,3 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
         loss, acc = self.forward(batch, mode="test")
         self.log("test loss", loss)
         self.log("test accuracy", acc)
-
-
-"""
-***************************************************************************************************
-test
-***************************************************************************************************
-"""
-
-
-def test():
-    model = PytorchLightningModuleNodeClassifier(in_features=1433, hidden_dim=32, out_features=7,
-                                                 depth=4,
-                                                 use_batch_normalization=True,
-                                                 class_of_gnn=torch_geometric.nn.GCNConv,
-                                                 gnn_params={},
-                                                 class_of_activation=torch.nn.ELU)
-    trainer = L.Trainer(max_epochs=20)
-    dataset = Planetoid(root='/tmp/Cora', name='Cora')
-    node_data_loader = torch_geometric.data.DataLoader(dataset, batch_size=1)
-    trainer.fit(model=model, train_dataloaders=node_data_loader, val_dataloaders=node_data_loader)
-    trainer.test(model=model, dataloaders=node_data_loader)
-
-
-"""
-***************************************************************************************************
-call test 
-***************************************************************************************************
-"""
-if __name__ == "__main__":
-    test()

@@ -57,7 +57,7 @@ class GNNNodeClassifier(torch.nn.Module):
                 result += r
             else:
                 data = module(data)
-                result.append(data)
+        result.append(data)
         return result
 
 
@@ -106,25 +106,27 @@ def test():
     assert data.test_mask.sum().item() == 1000
 
     # make gnn encoder
-    gnn_encoder = GNNNodeClassifier(in_features=1433, hidden_dim=32, out_features=7, depth=4,
+    classifier = GNNNodeClassifier(in_features=1433, hidden_dim=32, out_features=7, depth=4,
                                     use_batch_normalization=True,
                                     class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
                                     class_of_activation=torch.nn.ELU)
 
     # print model
-    print(gnn_encoder)
-    assert str(gnn_encoder) == test_model
+    print(classifier)
+    assert str(classifier) == test_model
+    verbose_out = classifier.verbose_forward(data)
+    assert len(verbose_out) == 6
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data = dataset[0].to(device)
-    optimizer = torch.optim.Adam(gnn_encoder.parameters(), lr=0.01, weight_decay=5e-4)
+    optimizer = torch.optim.Adam(classifier.parameters(), lr=0.01, weight_decay=5e-4)
 
-    gnn_encoder.train()
+    classifier.train()
     loss = 1000
     for epoch in range(200):
         optimizer.zero_grad()
-        out = gnn_encoder(data)
+        out = classifier(data)
         loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
         loss.backward()
         optimizer.step()
@@ -132,14 +134,12 @@ def test():
 
     assert loss < 0.0004
 
-    gnn_encoder.eval()
-    pred = gnn_encoder(data).argmax(dim=1)
+    classifier.eval()
+    pred = classifier(data).argmax(dim=1)
     correct = (pred[data.test_mask] == data.y[data.test_mask]).sum()
     acc = int(correct) / int(data.test_mask.sum())
     print(f'Accuracy: {acc:.4f}')
 
-    verbose_out = gnn_encoder.verbose_forward(data)
-    assert len(verbose_out) == 6
 
 
 """

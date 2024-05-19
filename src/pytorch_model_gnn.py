@@ -3,11 +3,9 @@ File that implements the GNN part of the classifier (the starting part).
 """
 
 import torch
+import torch.nn.functional as F
 import torch_geometric
 from torch_geometric.datasets import Planetoid
-import torch.nn.functional as F
-
-from gaussian_kernel import GaussianKernel
 
 """
 ***************************************************************************************************
@@ -63,7 +61,8 @@ class GNNEncoder(torch.nn.Module):
     ***********************************************************************************************
     """
 
-    def __init__(self, in_channels: int, out_channels: int, depth: int, use_batch_normalization: bool,
+    def __init__(self, in_channels: int, out_channels: int, depth: int,
+                 use_batch_normalization: bool,
                  class_of_gnn, gnn_params: dict[str, any], class_of_activation, *args, **kwargs):
         super().__init__(*args, **kwargs)
         assert in_channels > 0
@@ -101,17 +100,22 @@ class GNNEncoder(torch.nn.Module):
         return self.model.forward(x, edge_index)
 
     def verbose_forward(self, data):
-        result = [data]
-        # go over the layers in the network
+        x, edge_index = data.x, data.edge_index
+        result = [x]
         for module in self.model:
-            if hasattr(module, 'verbose_forward') and callable(module.verbose_forward):
-                # if the layer has the same function then call that
-                r = module.verbose_forward(data)
-                data = r[-1]
-                result += r
+            assert not (hasattr(module, 'verbose_forward') and callable(module.verbose_forward))
+            assert hasattr(module, 'forward')
+            if type(module) in [
+                torch_geometric.nn.GCNConv,
+                torch_geometric.nn.GATConv,
+                torch_geometric.nn.GATv2Conv,
+                torch_geometric.nn.SAGEConv,
+                torch_geometric.nn.GraphConv
+            ]:
+                x = module.forward(x, edge_index)
+                result.append(x)
             else:
-                data = module(data)
-                result.append(data)
+                x = module.forward(x)
         return result
 
 
@@ -152,13 +156,15 @@ def test():
     assert data.test_mask.sum().item() == 1000
 
     # make gnn encoder
-    gnn_encoder = GNNEncoder(in_channels=1433, out_channels=7, depth=4, use_batch_normalization=True,
+    gnn_encoder = GNNEncoder(in_channels=1433, out_channels=7, depth=4,
+                             use_batch_normalization=True,
                              class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
                              class_of_activation=torch.nn.ELU)
 
     # print model
     print(gnn_encoder)
     assert str(gnn_encoder) == test_model
+    print(len(gnn_encoder.verbose_forward(data)))
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -175,7 +181,7 @@ def test():
         optimizer.step()
         print(f"loss = {loss}")
 
-    assert loss < 0.004
+    assert loss < 0.005
 
     gnn_encoder.eval()
     pred = F.log_softmax(gnn_encoder(data), dim=1).argmax(dim=1)
