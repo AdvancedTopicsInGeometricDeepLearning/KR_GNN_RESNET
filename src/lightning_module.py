@@ -20,7 +20,7 @@ PytorchLightningModule
 """
 
 
-class PytorchLightningModule(L.LightningModule):
+class PytorchLightningModuleNodeClassifier(L.LightningModule):
     """
     ***********************************************************************************************
     Pytorch Lightning Module To make training and testing easier
@@ -84,10 +84,12 @@ test
 
 
 def test():
-    model = PytorchLightningModule(in_features=1433, hidden_dim=32, out_features=7, depth=4,
-                                   use_batch_normalization=True,
-                                   class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
-                                   class_of_activation=torch.nn.ELU)
+    model = PytorchLightningModuleNodeClassifier(in_features=1433, hidden_dim=32, out_features=7,
+                                                 depth=4,
+                                                 use_batch_normalization=True,
+                                                 class_of_gnn=torch_geometric.nn.GCNConv,
+                                                 gnn_params={},
+                                                 class_of_activation=torch.nn.ELU)
     trainer = L.Trainer(max_epochs=20)
     dataset = Planetoid(root='/tmp/Cora', name='Cora')
     node_data_loader = torch_geometric.data.DataLoader(dataset, batch_size=1)
