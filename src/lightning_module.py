@@ -53,8 +53,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     ) -> torch.Tensor:
         loss = [None] * len(out)
         global_loss = torch.zeros(())
-        amount_of_layers_in_classifier = 4
-        for i in range(1, len(out) - amount_of_layers_in_classifier):
+        for i in range(1, len(out) - 1):
             relevant_edges = edge_index.T
             if relevant_edges.shape[0] == 0:
                 loss[i] = None

@@ -8,6 +8,7 @@ from torch_geometric.datasets import Planetoid
 
 from hyper_parameters import Parameters
 from pytorch_model_gnn import GNNEncoder
+from pytorch_model_saver import Saver
 
 """
 ***************************************************************************************************
@@ -28,32 +29,27 @@ class GNNNodeClassifier(torch.nn.Module):
         super().__init__(*args, **kwargs)
         assert params.out_features > 0
         # add encoder
-        encoder = GNNEncoder(params=params)
+        self.list_to_save_to = []
+        encoder = GNNEncoder(params=params, list_to_save_to=self.list_to_save_to)
 
         self.model = torch.nn.Sequential(
             encoder,
             torch.nn.Linear(in_features=params.hidden_dim, out_features=params.hidden_dim),
             params.class_of_activation(),
             torch.nn.Linear(in_features=params.hidden_dim, out_features=params.out_features),
-            torch.nn.LogSoftmax(dim=1)
+            torch.nn.LogSoftmax(dim=1),
+            Saver(list_to_save_to=self.list_to_save_to)
         )
 
     def forward(self, data):
-        return self.model.forward(data)
+        x = self.model.forward(data)
+        self.list_to_save_to.clear()
+        return x
 
     def verbose_forward(self, data):
-        result = []
-        # go over the layers in the network
-        for module in self.model:
-            if hasattr(module, 'verbose_forward') and callable(module.verbose_forward):
-                # if the layer has the same function then call that
-                r = module.verbose_forward(data)
-                data = r[-1]
-                result += r
-            else:
-                data = module(data)
-                result.append(data)
-        return result
+        self.list_to_save_to.clear()
+        self.model.forward(data)
+        return self.list_to_save_to
 
 
 """
@@ -66,24 +62,30 @@ test_model = """GNNNodeClassifier(
   (model): Sequential(
     (0): GNNEncoder(
       (model): Sequential(
-        (0) - GCNConv(1433, 32): x, edge_index -> x
-        (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (2) - ELU(alpha=1.0, inplace=True): x -> x
-        (3) - GCNConv(32, 32): x, edge_index -> x
-        (4) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (5) - ELU(alpha=1.0, inplace=True): x -> x
-        (6) - GCNConv(32, 32): x, edge_index -> x
-        (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (8) - ELU(alpha=1.0, inplace=True): x -> x
+        (0) - Saver(): x -> x
+        (1) - GCNConv(1433, 32): x, edge_index -> x
+        (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (3) - ELU(alpha=1.0, inplace=True): x -> x
+        (4) - Saver(): x -> x
+        (5) - GCNConv(32, 32): x, edge_index -> x
+        (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (7) - ELU(alpha=1.0, inplace=True): x -> x
+        (8) - Saver(): x -> x
         (9) - GCNConv(32, 32): x, edge_index -> x
         (10) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
         (11) - ELU(alpha=1.0, inplace=True): x -> x
+        (12) - Saver(): x -> x
+        (13) - GCNConv(32, 32): x, edge_index -> x
+        (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (15) - ELU(alpha=1.0, inplace=True): x -> x
+        (16) - Saver(): x -> x
       )
     )
     (1): Linear(in_features=32, out_features=32, bias=True)
     (2): ELU(alpha=1.0)
     (3): Linear(in_features=32, out_features=7, bias=True)
     (4): LogSoftmax(dim=1)
+    (5): Saver()
   )
 )"""
 
@@ -109,7 +111,7 @@ def test():
     assert str(classifier) == test_model
     verbose_out = classifier.verbose_forward(data)
     print(len(verbose_out))
-    assert len(verbose_out) == 17
+    assert len(verbose_out) == 6
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

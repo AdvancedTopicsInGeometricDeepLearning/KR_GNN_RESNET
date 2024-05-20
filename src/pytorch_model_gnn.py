@@ -2,12 +2,15 @@
 File that implements the GNN part of the classifier (the starting part).
 """
 
+from typing import Callable
+
 import torch
 import torch.nn.functional as F
 import torch_geometric
 from torch_geometric.datasets import Planetoid
-from typing import Callable
+
 from hyper_parameters import Parameters
+from pytorch_model_saver import Saver
 
 """
 ***************************************************************************************************
@@ -63,7 +66,7 @@ class GNNEncoder(torch.nn.Module):
     ***********************************************************************************************
     """
 
-    def __init__(self, params: Parameters, *args, **kwargs):
+    def __init__(self, params: Parameters, list_to_save_to: list, *args, **kwargs):
         super().__init__(*args, **kwargs)
         in_channels = params.in_features
         out_channels = params.hidden_dim
@@ -72,16 +75,20 @@ class GNNEncoder(torch.nn.Module):
         assert params.depth > 0
         assert params.use_batch_normalization in [True, False]
         assert params.class_of_gnn in [torch_geometric.nn.GCNConv, torch_geometric.nn.GATConv,
-                                torch_geometric.nn.GATv2Conv, torch_geometric.nn.SAGEConv,
-                                torch_geometric.nn.GraphConv]
+                                       torch_geometric.nn.GATv2Conv, torch_geometric.nn.SAGEConv,
+                                       torch_geometric.nn.GraphConv]
         assert params.class_of_activation in [torch.nn.ELU, torch.nn.LeakyReLU, torch.nn.ReLU]
 
-        layers = []
+        self.list_to_save_to = list_to_save_to
+        layers = [
+            (Saver(list_to_save_to=self.list_to_save_to), 'x -> x')
+        ]
 
         previous_output_channels = in_channels
         for d in range(params.depth):
             # add GNN layer
-            gnn = self.get_layer(class_of_gnn=params.class_of_gnn, in_channels=previous_output_channels,
+            gnn = self.get_layer(class_of_gnn=params.class_of_gnn,
+                                 in_channels=previous_output_channels,
                                  out_channels=out_channels, gnn_params=params.gnn_params)
             layers.append((gnn, 'x, edge_index -> x'))
 
@@ -93,6 +100,9 @@ class GNNEncoder(torch.nn.Module):
             activation_layer = params.class_of_activation(inplace=True)
             layers.append(activation_layer)
 
+            # add layer to save output
+            layers.append(Saver(list_to_save_to=self.list_to_save_to))
+
             previous_output_channels = out_channels
 
         self.model = torch_geometric.nn.Sequential('x, edge_index', layers)
@@ -100,25 +110,6 @@ class GNNEncoder(torch.nn.Module):
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
         return self.model.forward(x, edge_index)
-
-    def verbose_forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        result = [x]
-        for module in self.model:
-            assert not (hasattr(module, 'verbose_forward') and callable(module.verbose_forward))
-            assert hasattr(module, 'forward')
-            if type(module) in [
-                torch_geometric.nn.GCNConv,
-                torch_geometric.nn.GATConv,
-                torch_geometric.nn.GATv2Conv,
-                torch_geometric.nn.SAGEConv,
-                torch_geometric.nn.GraphConv
-            ]:
-                x = module.forward(x, edge_index)
-            else:
-                x = module.forward(x)
-            result.append(x)
-        return result
 
 
 """
@@ -129,18 +120,23 @@ Test
 
 test_model = """GNNEncoder(
   (model): Sequential(
-    (0) - GCNConv(1433, 32): x, edge_index -> x
-    (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (2) - ELU(alpha=1.0, inplace=True): x -> x
-    (3) - GCNConv(32, 32): x, edge_index -> x
-    (4) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (5) - ELU(alpha=1.0, inplace=True): x -> x
-    (6) - GCNConv(32, 32): x, edge_index -> x
-    (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (8) - ELU(alpha=1.0, inplace=True): x -> x
+    (0) - Saver(): x -> x
+    (1) - GCNConv(1433, 32): x, edge_index -> x
+    (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (3) - ELU(alpha=1.0, inplace=True): x -> x
+    (4) - Saver(): x -> x
+    (5) - GCNConv(32, 32): x, edge_index -> x
+    (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (7) - ELU(alpha=1.0, inplace=True): x -> x
+    (8) - Saver(): x -> x
     (9) - GCNConv(32, 32): x, edge_index -> x
     (10) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
     (11) - ELU(alpha=1.0, inplace=True): x -> x
+    (12) - Saver(): x -> x
+    (13) - GCNConv(32, 32): x, edge_index -> x
+    (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (15) - ELU(alpha=1.0, inplace=True): x -> x
+    (16) - Saver(): x -> x
   )
 )"""
 
@@ -159,13 +155,17 @@ def test():
 
     # make gnn encoder
     params = Parameters(in_features=1433, out_features=7)
-    gnn_encoder = GNNEncoder(params)
+    saved = []
+    gnn_encoder = GNNEncoder(params, list_to_save_to=saved)
 
     # print model
     print(gnn_encoder)
     assert str(gnn_encoder) == test_model
-    assert len(gnn_encoder.verbose_forward(data)) == 13
-    assert torch.allclose(gnn_encoder.verbose_forward(data)[-1], gnn_encoder.forward(data))
+    gnn_encoder.forward(data)
+    assert len(saved) == 5
+    gnn_encoder.forward(data)
+    assert len(saved) == 10
+    assert torch.allclose(saved[-1], gnn_encoder.forward(data))
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
