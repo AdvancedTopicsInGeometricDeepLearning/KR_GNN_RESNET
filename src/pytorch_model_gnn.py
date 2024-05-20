@@ -108,7 +108,10 @@ class GNNEncoder(torch.nn.Module):
             # add resnet
             if params.use_res_net and (d + 1 - params.skip_connection_stride > 0) and (
                     d + 1) % params.skip_connection_stride == 0:
-                layers.append((ResNet(), f"x, x{d + 1 - params.skip_connection_stride} -> x"))
+                layers.append((
+                    ResNet(params=params),
+                    f"x, x{d + 1 - params.skip_connection_stride} -> x"
+                ))
 
             # add layer to save output
             layers.append(Saver(list_to_save_to=self.list_to_save_to))

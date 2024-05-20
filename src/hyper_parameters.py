@@ -32,6 +32,7 @@ class Parameters:
     learning_rate: float
     use_res_net: bool
     skip_connection_stride: int
+    res_net_mode: str
 
     def __init__(self, in_features, out_features):
         self.in_features = in_features
@@ -52,3 +53,4 @@ class Parameters:
         self.learning_rate = 1e-5
         self.use_res_net = True
         self.skip_connection_stride = 1
+        self.res_net_mode = "mul"

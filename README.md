@@ -62,3 +62,10 @@ python run_exp.py -cn reconstruction_agg layer=gcn dataset=pubmed model.depth=1 
 ```commandline
 tensorboard --logdir=lightning_logs/
 ```
+
+## Export environment 
+
+```commandline
+conda list --explicit > explicit_requirements.txt
+conda list > requirements.txt
+```
