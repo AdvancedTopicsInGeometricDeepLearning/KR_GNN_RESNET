@@ -325,7 +325,7 @@ def main(cfg: DictConfig):
         wandb.finish()
 
 
-@hydra.main(config_path="configs", config_name="reconstruction_agg")  # Config name will be given via command line
+@hydra.main(config_path="../configs", config_name="reconstruction_agg")  # Config name will be given via command line
 def launcher(cfg: DictConfig):
     if cfg.is_empty():
         print("Nothing to do, no config given")
