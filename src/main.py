@@ -1,9 +1,10 @@
 """
 main file that runs an experiment on
 """
+import multiprocessing
 
 import lightning as L
-import torch_geometric.data.data
+import torch_geometric
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from torch_geometric.datasets import Planetoid
 
@@ -17,28 +18,59 @@ helper functions
 """
 
 
+def get_data_loader(
+        dataset: torch_geometric.datasets.Planetoid,
+        mode: str,
+        params: Parameters
+) -> torch_geometric.loader.DataLoader:
+    assert mode in ["train", "val", "test"]
+    return torch_geometric.loader.NeighborLoader(
+        # planetoid contains only one graph
+        dataset[0],
+        # Sample 30 neighbors for each node for 2 iterations
+        num_neighbors=[30] * params.depth,
+        # Use a batch size of 128 for sampling training nodes
+        batch_size=params.batch_size,
+        input_nodes=dataset.train_mask if mode == "train" else (
+            dataset.val_mask if mode == "val" else dataset.test_mask),
+        num_workers=multiprocessing.cpu_count()
+    )
+
+
 def run_experiment():
     # get dataset
     dataset = Planetoid(root='/tmp/Cora', name='Cora')
 
-    # make data loader
-    node_data_loader = torch_geometric.data.DataLoader(dataset, batch_size=1)
+    # Make parameters
+    params = Parameters(in_features=dataset.num_node_features, out_features=dataset.num_classes)
+    params.use_kernel_regression = True
 
     # make model
-    params = Parameters(in_features=dataset.num_node_features, out_features=dataset.num_classes)
     model = PytorchLightningModuleNodeClassifier(params=params)
 
     # make trainer
     trainer = L.Trainer(
-        max_epochs=1000,
-        callbacks=[EarlyStopping(monitor="validation loss", mode="min")]
+        max_epochs=params.max_epochs,
+        callbacks=[
+            EarlyStopping(
+                monitor="validation loss", mode="min",
+                patience=params.early_stopping_patience
+            )
+        ]
     )
 
     # train model
-    trainer.fit(model=model, train_dataloaders=node_data_loader, val_dataloaders=node_data_loader)
+    trainer.fit(
+        model=model,
+        train_dataloaders=get_data_loader(dataset=dataset, mode="train", params=params),
+        val_dataloaders=get_data_loader(dataset=dataset, mode="val", params=params)
+    )
 
     # test model to get accuracy
-    acc = trainer.test(model=model, dataloaders=node_data_loader)
+    acc = trainer.test(
+        model=model,
+        dataloaders=get_data_loader(dataset=dataset, mode="test", params=params)
+    )
 
     return acc[0]
 

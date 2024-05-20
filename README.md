@@ -55,3 +55,10 @@ using the `pubmed` dataset with 1 GCN layer:
 ```commandline
 python run_exp.py -cn reconstruction_agg layer=gcn dataset=pubmed model.depth=1 training.use_self_in_loss=true training.add_regularization=false
 ```
+
+
+## Run tensor board
+
+```commandline
+tensorboard --logdir=lightning_logs/
+```

@@ -42,13 +42,12 @@ class GNNNodeClassifier(torch.nn.Module):
         return self.model.forward(data)
 
     def verbose_forward(self, data):
-        result = [data]
+        result = []
         # go over the layers in the network
         for module in self.model:
             if hasattr(module, 'verbose_forward') and callable(module.verbose_forward):
                 # if the layer has the same function then call that
                 r = module.verbose_forward(data)
-                r = r[1:]
                 data = r[-1]
                 result += r
             else:
