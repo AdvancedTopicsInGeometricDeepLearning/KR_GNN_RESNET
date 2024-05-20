@@ -10,6 +10,8 @@ import torch_geometric
 from torch_geometric.datasets import Planetoid
 
 from hyper_parameters import Parameters
+from pytorch_model_identity import Identity
+from pytorch_model_resnet import ResNet
 from pytorch_model_saver import Saver
 
 """
@@ -86,6 +88,9 @@ class GNNEncoder(torch.nn.Module):
 
         previous_output_channels = in_channels
         for d in range(params.depth):
+            # save name of x
+            layers.append((Identity(), f"x -> x{d}"))
+
             # add GNN layer
             gnn = self.get_layer(class_of_gnn=params.class_of_gnn,
                                  in_channels=previous_output_channels,
@@ -99,6 +104,11 @@ class GNNEncoder(torch.nn.Module):
             # add activation function
             activation_layer = params.class_of_activation(inplace=True)
             layers.append(activation_layer)
+
+            # add resnet
+            if params.use_res_net and (d + 1 - params.skip_connection_stride > 0) and (
+                    d + 1) % params.skip_connection_stride == 0:
+                layers.append((ResNet(), f"x, x{d + 1 - params.skip_connection_stride} -> x"))
 
             # add layer to save output
             layers.append(Saver(list_to_save_to=self.list_to_save_to))
@@ -121,22 +131,29 @@ Test
 test_model = """GNNEncoder(
   (model): Sequential(
     (0) - Saver(): x -> x
-    (1) - GCNConv(1433, 32): x, edge_index -> x
-    (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (3) - ELU(alpha=1.0, inplace=True): x -> x
-    (4) - Saver(): x -> x
-    (5) - GCNConv(32, 32): x, edge_index -> x
-    (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (7) - ELU(alpha=1.0, inplace=True): x -> x
-    (8) - Saver(): x -> x
-    (9) - GCNConv(32, 32): x, edge_index -> x
-    (10) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (11) - ELU(alpha=1.0, inplace=True): x -> x
-    (12) - Saver(): x -> x
+    (1) - Identity(): x -> x0
+    (2) - GCNConv(1433, 32): x, edge_index -> x
+    (3) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (4) - ELU(alpha=1.0, inplace=True): x -> x
+    (5) - Saver(): x -> x
+    (6) - Identity(): x -> x1
+    (7) - GCNConv(32, 32): x, edge_index -> x
+    (8) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (9) - ELU(alpha=1.0, inplace=True): x -> x
+    (10) - ResNet(): x, x1 -> x
+    (11) - Saver(): x -> x
+    (12) - Identity(): x -> x2
     (13) - GCNConv(32, 32): x, edge_index -> x
     (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
     (15) - ELU(alpha=1.0, inplace=True): x -> x
-    (16) - Saver(): x -> x
+    (16) - ResNet(): x, x2 -> x
+    (17) - Saver(): x -> x
+    (18) - Identity(): x -> x3
+    (19) - GCNConv(32, 32): x, edge_index -> x
+    (20) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (21) - ELU(alpha=1.0, inplace=True): x -> x
+    (22) - ResNet(): x, x3 -> x
+    (23) - Saver(): x -> x
   )
 )"""
 

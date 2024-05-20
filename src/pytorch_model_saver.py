@@ -1,12 +1,12 @@
 """
-File that implements the GNN part of the classifier (the starting part).
+File that implements a model that saves the results that pass through it.
 """
 
 import torch
 
 """
 ***************************************************************************************************
-GNNEncoder
+Saver
 ***************************************************************************************************
 """
 

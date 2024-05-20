@@ -30,6 +30,8 @@ class Parameters:
     max_epochs: int
     early_stopping_patience: int
     learning_rate: float
+    use_res_net: bool
+    skip_connection_stride: int
 
     def __init__(self, in_features, out_features):
         self.in_features = in_features
@@ -47,4 +49,6 @@ class Parameters:
         self.batch_size = 8
         self.max_epochs = 1000
         self.early_stopping_patience = 10
-        self.learning_rate = 1e-3
+        self.learning_rate = 1e-5
+        self.use_res_net = True
+        self.skip_connection_stride = 1
