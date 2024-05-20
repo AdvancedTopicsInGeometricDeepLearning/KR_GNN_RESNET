@@ -4,9 +4,9 @@ File that implements a classifier for nodes in a graph using a deep GNN layer an
 
 import torch
 import torch.nn.functional as F
-import torch_geometric
 from torch_geometric.datasets import Planetoid
 
+from hyper_parameters import Parameters
 from pytorch_model_gnn import GNNEncoder
 
 """
@@ -24,22 +24,17 @@ class GNNNodeClassifier(torch.nn.Module):
     ***********************************************************************************************
     """
 
-    def __init__(self, in_features: int, hidden_dim: int, out_features: int, depth: int,
-                 use_batch_normalization: bool,
-                 class_of_gnn, gnn_params: dict[str, any], class_of_activation, *args, **kwargs):
+    def __init__(self, params: Parameters, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        assert out_features > 0
+        assert params.out_features > 0
         # add encoder
-        encoder = GNNEncoder(in_channels=in_features, out_channels=hidden_dim, depth=depth,
-                             use_batch_normalization=use_batch_normalization,
-                             class_of_gnn=class_of_gnn, gnn_params=gnn_params,
-                             class_of_activation=class_of_activation)
+        encoder = GNNEncoder(params=params)
 
         self.model = torch.nn.Sequential(
             encoder,
-            torch.nn.Linear(in_features=hidden_dim, out_features=hidden_dim),
-            class_of_activation(),
-            torch.nn.Linear(in_features=hidden_dim, out_features=out_features),
+            torch.nn.Linear(in_features=params.hidden_dim, out_features=params.hidden_dim),
+            params.class_of_activation(),
+            torch.nn.Linear(in_features=params.hidden_dim, out_features=params.out_features),
             torch.nn.LogSoftmax(dim=1)
         )
 
@@ -53,11 +48,12 @@ class GNNNodeClassifier(torch.nn.Module):
             if hasattr(module, 'verbose_forward') and callable(module.verbose_forward):
                 # if the layer has the same function then call that
                 r = module.verbose_forward(data)
+                r = r[1:]
                 data = r[-1]
                 result += r
             else:
                 data = module(data)
-        result.append(data)
+                result.append(data)
         return result
 
 
@@ -106,16 +102,15 @@ def test():
     assert data.test_mask.sum().item() == 1000
 
     # make gnn encoder
-    classifier = GNNNodeClassifier(in_features=1433, hidden_dim=32, out_features=7, depth=4,
-                                    use_batch_normalization=True,
-                                    class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
-                                    class_of_activation=torch.nn.ELU)
+    params = Parameters(in_features=1433, out_features=7)
+    classifier = GNNNodeClassifier(params=params)
 
     # print model
     print(classifier)
     assert str(classifier) == test_model
     verbose_out = classifier.verbose_forward(data)
-    assert len(verbose_out) == 6
+    print(len(verbose_out))
+    assert len(verbose_out) == 17
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -139,7 +134,6 @@ def test():
     correct = (pred[data.test_mask] == data.y[data.test_mask]).sum()
     acc = int(correct) / int(data.test_mask.sum())
     print(f'Accuracy: {acc:.4f}')
-
 
 
 """

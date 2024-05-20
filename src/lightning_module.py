@@ -8,6 +8,8 @@ import torch.nn.functional as F
 from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import optim
 
+from gaussian_kernel import GaussianKernel
+from hyper_parameters import Parameters
 from pytorch_model_classifier import GNNNodeClassifier
 
 """
@@ -26,23 +28,16 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
 
     def __init__(
             self,
-            in_features: int,
-            hidden_dim: int,
-            out_features: int,
-            depth: int,
-            use_batch_normalization: bool,
-            class_of_gnn,
-            gnn_params: dict[str, any],
-            class_of_activation,
+            params: Parameters
     ):
         super().__init__()
-        self.model = GNNNodeClassifier(
-            in_features=in_features, hidden_dim=hidden_dim,
-            out_features=out_features, depth=depth,
-            use_batch_normalization=use_batch_normalization,
-            class_of_gnn=class_of_gnn, gnn_params=gnn_params,
-            class_of_activation=class_of_activation
-        )
+        self.model = GNNNodeClassifier(params=params)
+        if params.use_kernel_regression:
+            kernel = GaussianKernel(
+                max_samples=4096,
+                add_regularization=params.add_regularization_to_kernel_regression
+            )
+            self.kernel_regression_loss = lambda x, y: kernel.compute_d(x, y)
 
     def forward(self, data, mode="train"):
         # x, edge_index = data.x, data.edge_index

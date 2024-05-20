@@ -3,11 +3,11 @@ main file that runs an experiment on
 """
 
 import lightning as L
-import torch
 import torch_geometric.data.data
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from torch_geometric.datasets import Planetoid
 
+from hyper_parameters import Parameters
 from lightning_module import PytorchLightningModuleNodeClassifier
 
 """
@@ -25,15 +25,8 @@ def run_experiment():
     node_data_loader = torch_geometric.data.DataLoader(dataset, batch_size=1)
 
     # make model
-    model = PytorchLightningModuleNodeClassifier(
-        in_features=dataset.num_node_features,
-        hidden_dim=32,
-        out_features=dataset.num_classes,
-        depth=40,
-        use_batch_normalization=True,
-        class_of_gnn=torch_geometric.nn.GCNConv, gnn_params={},
-        class_of_activation=torch.nn.ELU
-    )
+    params = Parameters(in_features=dataset.num_node_features, out_features=dataset.num_classes)
+    model = PytorchLightningModuleNodeClassifier(params=params)
 
     # make trainer
     trainer = L.Trainer(
