@@ -184,7 +184,8 @@ def test():
 
     # make gnn encoder
     params = Parameters(
-        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF, res_net_mode=ResNetMode.ADD
+        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF,
+        res_net_mode=ResNetMode.ADD
     )
     saved = []
     gnn_encoder = GNNEncoder(params, list_to_save_to=saved)

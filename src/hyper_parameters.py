@@ -75,9 +75,9 @@ class Parameters:
         self.add_regularization_to_kernel_regression = False
         self.use_self_in_loss_for_kernel_regression = False
         self.max_edges_for_kr_loss = 10000
-        self.batch_size = 8
-        self.max_epochs = 20
+        self.batch_size = 1
+        self.max_epochs = 100
         self.early_stopping_patience = 5
-        self.learning_rate = 1e-5
+        self.learning_rate = 1e-2
         self.skip_connection_stride = 1
         self.res_net_mode = res_net_mode

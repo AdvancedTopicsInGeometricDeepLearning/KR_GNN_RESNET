@@ -1,6 +1,8 @@
 """
 File that runs all experiments.
 """
+import pathlib
+import shutil
 from pathlib import Path
 
 from hyper_parameters import KernelRegressionMode, ResNetMode
@@ -12,6 +14,11 @@ helper functions
 ***************************************************************************************************
 """
 
+def remove_dir(name):
+    path = Path(name)
+    if path.exists():
+        shutil.rmtree(path=path)
+
 """
 ***************************************************************************************************
 main function
@@ -20,9 +27,11 @@ main function
 
 
 def main():
-    Path("results").mkdir(exist_ok=True)
+    remove_dir("lightning_logs")
+    remove_dir("results")
+    Path("results").mkdir()
     # Run without KR and without skip connections
-    depths = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    depths = list(range(1, 20))
     # accuracies = []
     # losses = []
     for depth in depths:

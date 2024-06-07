@@ -121,7 +121,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     ***********************************************************************************************
     """
 
-    def forward(self, data, mode="train"):
+    def forward(self, data, mode="train") -> tuple[torch.Tensor, torch.Tensor]:
         # x, edge_index = data.x, data.edge_index
         if self.kernel_regression_loss and mode == "train":
             layers = self.model.verbose_forward(data)

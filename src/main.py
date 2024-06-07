@@ -25,14 +25,9 @@ def get_data_loader(
         params: Parameters
 ) -> torch_geometric.loader.DataLoader:
     assert mode in ["train", "val", "test"]
-    return torch_geometric.loader.NeighborLoader(
-        # planetoid contains only one graph
-        dataset[0],
-        # Sample 30 neighbors for each node for all iterations
-        num_neighbors=[30] * params.depth,
+    return torch_geometric.loader.DataLoader(
+        dataset,
         batch_size=params.batch_size,
-        input_nodes=dataset.train_mask if mode == "train" else (
-            dataset.val_mask if mode == "val" else dataset.test_mask),
         num_workers=multiprocessing.cpu_count()
     )
 
@@ -51,6 +46,7 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
 
     # make model
     model = PytorchLightningModuleNodeClassifier(params=params)
+    model_str = str(model)
 
     # make trainer
     trainer = L.Trainer(
@@ -72,16 +68,22 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
     )
 
     # test model to get accuracy
-    acc = trainer.test(
-        model=model,
-        dataloaders=get_data_loader(dataset=dataset, mode="test", params=params)
-    )
+    train_loss, train_acc = model.forward(dataset[0], mode="train")
+    val_loss, val_acc = model.forward(dataset[0], mode="val")
+    test_loss, test_acc = model.forward(dataset[0], mode="test")
 
     return {
-        "test accuracy": acc[0]['test accuracy'],
-        "test loss": acc[0]['test loss'],
+        "train loss": train_loss.item(),
+        "val loss": val_loss.item(),
+        "test loss": test_loss.item(),
+
+        "train accuracy": train_acc.item(),
+        "val accuracy": val_acc.item(),
+        "test accuracy": test_acc.item(),
+
         "train epochs": model.train_epoch_count,
-        "model": str(model)
+        "depth": depth,
+        "model": model_str
     }
 
 

@@ -111,7 +111,8 @@ def test():
 
     # make gnn encoder
     params = Parameters(
-        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF, res_net_mode=ResNetMode.ADD
+        in_features=1433, out_features=7, depth=4,
+        kernel_regression_mode=KernelRegressionMode.AFTER_EACH_BLOCK, res_net_mode=ResNetMode.ADD
     )
     classifier = GNNNodeClassifier(params=params)
 

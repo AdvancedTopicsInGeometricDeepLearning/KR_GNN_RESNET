@@ -10,6 +10,9 @@ To run all the experiments that we ran simply run this command
 python src/run_main.py
 ```
 
+Make sure that the current working directory is **not** inside of `src`.
+
+
 ## Getting dependencies
 
 To get all dependencies, or just move on to the next step and install dependencies as they arise.
