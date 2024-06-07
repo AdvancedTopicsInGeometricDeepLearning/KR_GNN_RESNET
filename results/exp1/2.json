@@ -1,11 +1,11 @@
 {
-    "train loss": 0.006748969666659832,
-    "val loss": 1.2793091535568237,
-    "test loss": 1.20332670211792,
+    "train loss": 7.311477361326979e-07,
+    "val loss": 2.4684085845947266,
+    "test loss": 2.6598920822143555,
     "train accuracy": 1.0,
-    "val accuracy": 0.6200000047683716,
-    "test accuracy": 0.6449999809265137,
-    "train epochs": 12,
+    "val accuracy": 0.6679999828338623,
+    "test accuracy": 0.6620000004768372,
+    "train epochs": 100,
     "depth": 2,
-    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - GCNConv(1433, 32): x, edge_index -> x\n          (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (2) - ELU(alpha=1.0, inplace=True): x -> x\n          (3) - GCNConv(32, 32): x, edge_index -> x\n          (4) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (5) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=7, bias=True)\n      (4): LogSoftmax(dim=1)\n      (5): Saver()\n    )\n  )\n)"
+    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - GCNConv(500, 32): x, edge_index -> x\n          (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (2) - ELU(alpha=1.0, inplace=True): x -> x\n          (3) - GCNConv(32, 32): x, edge_index -> x\n          (4) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (5) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n      (5): Saver()\n    )\n  )\n)"
 }

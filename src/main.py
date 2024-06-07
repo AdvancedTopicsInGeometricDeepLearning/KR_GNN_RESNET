@@ -36,7 +36,7 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
     L.seed_everything(seed, workers=True)
 
     # get dataset
-    dataset = Planetoid(root='/tmp/Cora', name='Cora')
+    dataset = Planetoid(root='/tmp/PubMed', name='PubMed')
 
     # Make parameters
     params = Parameters(
