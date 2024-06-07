@@ -59,15 +59,16 @@ main function
 
 def main():
     remove_dir("lightning_logs")
-    remove_dir("results")
-    Path("results/exp1").mkdir(parents=True)
-    Path("results/exp2").mkdir(parents=True)
+
     # Run without KR and without skip connections
     depths = list(range(1, 30))
+    exp = 2
+    remove_dir(f"results/exp{exp}")
+    Path(f"results/exp{exp}").mkdir(parents=True)
     # accuracies = []
     # losses = []
     for depth in depths:
-        p = Process(target=run_once, args=[depth, 1])
+        p = Process(target=run_once, args=[depth, exp])
         p.start()
         p.join()
 

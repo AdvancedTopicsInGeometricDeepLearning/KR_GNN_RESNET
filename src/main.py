@@ -57,7 +57,8 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
                 patience=params.early_stopping_patience
             )
         ],
-        deterministic=True
+        deterministic=True,
+        log_every_n_steps=1
     )
 
     # train model
