@@ -22,19 +22,31 @@ def remove_dir(name):
         shutil.rmtree(path=path)
 
 
-def run_once(depth):
+def run_once(depth, test: int):
     gc.collect()
     remove_dir("lightning_logs")
-    d = run_experiment(
-        seed=42,
-        depth=depth,
-        use_kr=KernelRegressionMode.OFF,
-        res_net_mode=ResNetMode.NONE
-    )
+    d = {}
+    match test:
+        case 1:
+            d = run_experiment(
+                seed=42,
+                depth=depth,
+                use_kr=KernelRegressionMode.OFF,
+                res_net_mode=ResNetMode.NONE
+            )
+        case 2:
+            d = run_experiment(
+                seed=42,
+                depth=depth,
+                use_kr=KernelRegressionMode.AFTER_EACH_BLOCK,
+                res_net_mode=ResNetMode.NONE
+            )
+        case 3:
+            assert False
     # test_accuracy = d["test accuracy"]
     # test_loss = d["test loss"]
     import json
-    with open(f'results/exp1_{depth}.json', 'w', encoding='utf-8') as f:
+    with open(f'results/exp{test}/{depth}.json', 'w', encoding='utf-8') as f:
         json.dump(d, f, ensure_ascii=False, indent=4)
 
 
@@ -48,13 +60,14 @@ main function
 def main():
     remove_dir("lightning_logs")
     remove_dir("results")
-    Path("results").mkdir()
+    Path("results/exp1").mkdir(parents=True)
+    Path("results/exp2").mkdir(parents=True)
     # Run without KR and without skip connections
     depths = list(range(1, 30))
     # accuracies = []
     # losses = []
     for depth in depths:
-        p = Process(target=run_once, args=[depth])
+        p = Process(target=run_once, args=[depth, 1])
         p.start()
         p.join()
 

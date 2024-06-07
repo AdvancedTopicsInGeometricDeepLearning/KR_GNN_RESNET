@@ -36,7 +36,7 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
     L.seed_everything(seed, workers=True)
 
     # get dataset
-    dataset = Planetoid(root='/tmp/PubMed', name='PubMed')
+    dataset = Planetoid(root='/tmp/Cora', name='Cora')
 
     # Make parameters
     params = Parameters(
@@ -53,7 +53,7 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
         max_epochs=params.max_epochs,
         callbacks=[
             EarlyStopping(
-                monitor="validation accuracy", mode="max",
+                monitor="training loss", mode="min",
                 patience=params.early_stopping_patience
             )
         ],
