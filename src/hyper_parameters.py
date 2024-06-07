@@ -2,9 +2,31 @@
 File that contains all the possible parameter to the lightning module
 """
 
+from enum import Enum
+from typing import Callable
+
 import torch
 import torch_geometric.data.data
-from typing import Callable
+
+"""
+***************************************************************************************************
+types
+***************************************************************************************************
+"""
+
+
+class KernelRegressionMode(Enum):
+    OFF = 1
+    BEFORE_SKIP_CONNECTION = 2
+    AFTER_SKIP_CONNECTION = 3
+    AFTER_EACH_BLOCK = 4
+
+
+class ResNetMode(Enum):
+    NONE = 1
+    ADD = 2
+    MUL = 3
+
 
 """
 ***************************************************************************************************
@@ -22,7 +44,7 @@ class Parameters:
     gnn_params: dict[str, any]
     class_of_gnn: Callable
     class_of_activation: Callable
-    use_kernel_regression: bool
+    kernel_regression_mode: KernelRegressionMode
     add_regularization_to_kernel_regression: bool
     use_self_in_loss_for_kernel_regression: bool
     max_edges_for_kr_loss: int
@@ -30,27 +52,32 @@ class Parameters:
     max_epochs: int
     early_stopping_patience: int
     learning_rate: float
-    use_res_net: bool
     skip_connection_stride: int
-    res_net_mode: str
+    res_net_mode: ResNetMode
 
-    def __init__(self, in_features, out_features):
+    def __init__(
+            self,
+            in_features: int,
+            out_features: int,
+            kernel_regression_mode: KernelRegressionMode,
+            depth: int,
+            res_net_mode: ResNetMode
+    ):
         self.in_features = in_features
         self.hidden_dim = 32
         self.out_features = out_features
-        self.depth = 4
+        self.depth = depth
         self.use_batch_normalization = True
         self.gnn_params = {}
         self.class_of_gnn = torch_geometric.nn.GCNConv
         self.class_of_activation = torch.nn.ELU
-        self.use_kernel_regression = False
+        self.kernel_regression_mode = kernel_regression_mode
         self.add_regularization_to_kernel_regression = False
         self.use_self_in_loss_for_kernel_regression = False
         self.max_edges_for_kr_loss = 10000
         self.batch_size = 8
-        self.max_epochs = 1000
-        self.early_stopping_patience = 10
+        self.max_epochs = 20
+        self.early_stopping_patience = 5
         self.learning_rate = 1e-5
-        self.use_res_net = True
         self.skip_connection_stride = 1
-        self.res_net_mode = "mul"
+        self.res_net_mode = res_net_mode

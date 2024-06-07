@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.datasets import Planetoid
 
-from hyper_parameters import Parameters
+from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
 from pytorch_model_gnn import GNNEncoder
 from pytorch_model_saver import Saver
 
@@ -110,7 +110,9 @@ def test():
     assert data.test_mask.sum().item() == 1000
 
     # make gnn encoder
-    params = Parameters(in_features=1433, out_features=7)
+    params = Parameters(
+        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF, res_net_mode=ResNetMode.ADD
+    )
     classifier = GNNNodeClassifier(params=params)
 
     # print model

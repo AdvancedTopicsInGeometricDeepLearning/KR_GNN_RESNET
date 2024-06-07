@@ -3,23 +3,12 @@ A repo that presents our experiments with using kernel
 regression with graph neural networks while utilizing skip 
 connections. This project houses the results for the paper.
 
-## File structure
+To run all the experiments that we ran simply run this command 
+(assuming you have all the dependencies)
 
-* `./configs` contains configurations for running the tests.
-* `./dataset.py` contains functions for loading all the datasets that were used in the paper.
-* `./fetch_results.py` contains a script for making a CSV file.
-* `./gaussian_kernel.py` contains the logic for computing kernel regression.
-* `./knn.py` contains ?
-* `./model.py` contains the code for the model that is used in self supervised settings.
-* `./requirements.txt` contains the requirements used for the project, though this list may be incomplete.
-* `./run_exp.py` contains the code for running a specific model on a specific dataset, it is used by `./run_many_exp.py`.
-* `./run_many_exp.py` runs all the model on all the datasets.
-
-As for these 3, they appear to not use KR at all, and thus are the regular variants of the models.
-* `./model_reg.py` pretty sure the reg here stand for regular, as in, KR was not used at all.
-* `./run_exp_reg.py` contains the code for running a specific model on a specific dataset, it is used by `./run_many_exp_reg.py`.
-* `./run_many_exp_reg.py` runs all the model on all the datasets.
-
+```commandline
+python src/run_main.py
+```
 
 ## Getting dependencies
 

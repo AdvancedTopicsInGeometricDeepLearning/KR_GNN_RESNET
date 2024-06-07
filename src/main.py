@@ -1,6 +1,7 @@
 """
-main file that runs an experiment on
+main file that runs a single experiment
 """
+import argparse
 import multiprocessing
 
 import lightning as L
@@ -8,7 +9,7 @@ import torch_geometric
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from torch_geometric.datasets import Planetoid
 
-from hyper_parameters import Parameters
+from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
 from lightning_module import PytorchLightningModuleNodeClassifier
 
 """
@@ -27,9 +28,8 @@ def get_data_loader(
     return torch_geometric.loader.NeighborLoader(
         # planetoid contains only one graph
         dataset[0],
-        # Sample 30 neighbors for each node for 2 iterations
+        # Sample 30 neighbors for each node for all iterations
         num_neighbors=[30] * params.depth,
-        # Use a batch size of 128 for sampling training nodes
         batch_size=params.batch_size,
         input_nodes=dataset.train_mask if mode == "train" else (
             dataset.val_mask if mode == "val" else dataset.test_mask),
@@ -37,13 +37,17 @@ def get_data_loader(
     )
 
 
-def run_experiment():
+def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_mode: ResNetMode):
+    L.seed_everything(seed, workers=True)
+
     # get dataset
-    dataset = Planetoid(root='/tmp/Cora', name='Cora')
+    dataset = Planetoid(root='/tmp/PubMed', name='PubMed')
 
     # Make parameters
-    params = Parameters(in_features=dataset.num_node_features, out_features=dataset.num_classes)
-    params.use_kernel_regression = True
+    params = Parameters(
+        in_features=dataset.num_node_features, out_features=dataset.num_classes, depth=depth,
+        kernel_regression_mode=use_kr, res_net_mode=res_net_mode
+    )
 
     # make model
     model = PytorchLightningModuleNodeClassifier(params=params)
@@ -53,10 +57,11 @@ def run_experiment():
         max_epochs=params.max_epochs,
         callbacks=[
             EarlyStopping(
-                monitor="validation loss", mode="min",
+                monitor="validation accuracy", mode="max",
                 patience=params.early_stopping_patience
             )
-        ]
+        ],
+        deterministic=True
     )
 
     # train model
@@ -72,7 +77,12 @@ def run_experiment():
         dataloaders=get_data_loader(dataset=dataset, mode="test", params=params)
     )
 
-    return acc[0]
+    return {
+        "test accuracy": acc[0]['test accuracy'],
+        "test loss": acc[0]['test loss'],
+        "train epochs": model.train_epoch_count,
+        "model": str(model)
+    }
 
 
 """
@@ -83,7 +93,44 @@ main function
 
 
 def main():
-    acc1 = run_experiment()
+    parser = argparse.ArgumentParser(
+        prog='Experiment Runner',
+        description="Runs a single experiment with the provided parameters.",
+        epilog='Thanks for using this tool'
+    )
+    parser.add_argument(
+        '--kr', type=str, choices=["off", "before", "after"], required=True,
+        help="Choose Kernel regression settings either off, or before/after the skip connection."
+    )
+    parser.add_argument(
+        '--depth', type=int, required=True,
+        help="The amount of GNNs to use in the neural network."
+    )
+    parser.add_argument(
+        '--residual', type=str, choices=["none", "add", "mul"], required=True,
+        help="The type of skip connection to use."
+    )
+    args = parser.parse_args()
+
+    use_kr = None
+    match args.kr:
+        case "off":
+            use_kr = KernelRegressionMode.OFF
+        case "before":
+            use_kr = KernelRegressionMode.BEFORE_SKIP_CONNECTION
+        case "after":
+            use_kr = KernelRegressionMode.AFTER_SKIP_CONNECTION
+
+    res_net_mode = None
+    match args.residual:
+        case "none":
+            res_net_mode = ResNetMode.NONE
+        case "add":
+            res_net_mode = ResNetMode.ADD
+        case "mul":
+            res_net_mode = ResNetMode.MUL
+
+    acc1 = run_experiment(seed=42, depth=args.depth, use_kr=use_kr, res_net_mode=res_net_mode)
     print(f"acc1 = {acc1}")
 
 

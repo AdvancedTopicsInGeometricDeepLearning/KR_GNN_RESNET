@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch_geometric
 from torch_geometric.datasets import Planetoid
 
-from hyper_parameters import Parameters
+from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
 from pytorch_model_identity import Identity
 from pytorch_model_resnet import ResNet
 from pytorch_model_saver import Saver
@@ -82,14 +82,17 @@ class GNNEncoder(torch.nn.Module):
         assert params.class_of_activation in [torch.nn.ELU, torch.nn.LeakyReLU, torch.nn.ReLU]
 
         self.list_to_save_to = list_to_save_to
-        layers = [
-            (Saver(list_to_save_to=self.list_to_save_to), 'x -> x')
-        ]
+        use_res_net = params.res_net_mode != ResNetMode.NONE
+        layers = []
+
+        if params.kernel_regression_mode != KernelRegressionMode.OFF:
+            layers += [(Saver(list_to_save_to=self.list_to_save_to), 'x -> x')]
 
         previous_output_channels = in_channels
         for d in range(params.depth):
             # save name of x
-            layers.append((Identity(), f"x -> x{d}"))
+            if use_res_net:
+                layers.append((Identity(), f"x -> x{d}"))
 
             # add GNN layer
             gnn = self.get_layer(class_of_gnn=params.class_of_gnn,
@@ -106,15 +109,21 @@ class GNNEncoder(torch.nn.Module):
             layers.append(activation_layer)
 
             # add resnet
-            if params.use_res_net and (d + 1 - params.skip_connection_stride > 0) and (
-                    d + 1) % params.skip_connection_stride == 0:
+            correct_depth = (d + 1) % params.skip_connection_stride == 0
+            use_res_net_now = correct_depth and (d + 1 - params.skip_connection_stride > 0)
+            if use_res_net and use_res_net_now:
+                if params.kernel_regression_mode == KernelRegressionMode.BEFORE_SKIP_CONNECTION:
+                    layers.append(Saver(list_to_save_to=self.list_to_save_to))
                 layers.append((
                     ResNet(params=params),
                     f"x, x{d + 1 - params.skip_connection_stride} -> x"
                 ))
+                if params.kernel_regression_mode == KernelRegressionMode.AFTER_SKIP_CONNECTION:
+                    layers.append(Saver(list_to_save_to=self.list_to_save_to))
 
             # add layer to save output
-            layers.append(Saver(list_to_save_to=self.list_to_save_to))
+            if params.kernel_regression_mode == KernelRegressionMode.AFTER_EACH_BLOCK:
+                layers.append(Saver(list_to_save_to=self.list_to_save_to))
 
             previous_output_channels = out_channels
 
@@ -174,7 +183,9 @@ def test():
     assert data.test_mask.sum().item() == 1000
 
     # make gnn encoder
-    params = Parameters(in_features=1433, out_features=7)
+    params = Parameters(
+        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF, res_net_mode=ResNetMode.ADD
+    )
     saved = []
     gnn_encoder = GNNEncoder(params, list_to_save_to=saved)
 
@@ -191,6 +202,10 @@ def test():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     data = dataset[0].to(device)
     optimizer = torch.optim.Adam(gnn_encoder.parameters(), lr=0.01, weight_decay=5e-4)
+    from torchviz import make_dot
+    out = F.log_softmax(gnn_encoder(data), dim=1)
+    d = make_dot(out)
+    print(d)
 
     gnn_encoder.train()
     loss = 1000

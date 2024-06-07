@@ -11,7 +11,7 @@ from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import optim
 
 from gaussian_kernel import GaussianKernel
-from hyper_parameters import Parameters
+from hyper_parameters import Parameters, KernelRegressionMode
 from pytorch_model_classifier import GNNNodeClassifier
 
 """
@@ -35,7 +35,9 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
         super().__init__()
         self.model = GNNNodeClassifier(params=params)
         self.params = params
-        if params.use_kernel_regression:
+        self.train_epoch_count = 0
+        self.kernel_regression_loss = None
+        if params.kernel_regression_mode != KernelRegressionMode.OFF:
             kernel = GaussianKernel(
                 max_samples=4096,
                 add_regularization=params.add_regularization_to_kernel_regression
@@ -165,3 +167,6 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
         loss, acc = self.forward(batch, mode="test")
         self.log("test loss", loss)
         self.log("test accuracy", acc)
+
+    def on_train_epoch_end(self) -> None:
+        self.train_epoch_count += 1
