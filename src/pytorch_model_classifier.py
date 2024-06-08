@@ -9,7 +9,6 @@ from torch_geometric.datasets import Planetoid
 
 from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
 from pytorch_model_gnn import GNNEncoder
-from pytorch_model_saver_for_kr import SaverForKR
 
 """
 ***************************************************************************************************

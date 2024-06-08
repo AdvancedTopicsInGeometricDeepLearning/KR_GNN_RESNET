@@ -1,7 +1,6 @@
 """
 File that runs all experiments.
 """
-import gc
 import shutil
 from multiprocessing import Process
 from pathlib import Path
