@@ -29,7 +29,7 @@ def save_plot(title: str, add_title=True):
         plt.show()
 
 
-def make_exp_plot(exp: int, y_tag: str, x_tag: str, title: str):
+def get_xy_from_experiment(exp: int, y_tag: str, x_tag: str):
     path_list = Path(f"./results/exp{exp}").glob("*.json")
 
     xy = []
@@ -43,10 +43,20 @@ def make_exp_plot(exp: int, y_tag: str, x_tag: str, title: str):
 
     x = [tup[0] for tup in xy]
     y = [tup[1] for tup in xy]
+    return x, y
+
+
+def make_exp_plot(experiments: list[tuple[int, str]], y_tag: str, x_tag: str, title: str):
+    list_of_xy = []
+    for exp, _ in experiments:
+        xy = get_xy_from_experiment(exp=exp, x_tag=x_tag, y_tag=y_tag)
+        list_of_xy += [xy]
 
     # plot
     fig, ax = plt.subplots()
-    ax.plot(x, y)
+    for (x, y), (_, t) in zip(list_of_xy, experiments):
+        ax.plot(x, y, label=t)
+    ax.legend()
     save_plot(title=title)
 
 
@@ -59,12 +69,14 @@ main function
 
 def main():
     make_exp_plot(
-        exp=1, y_tag="train loss", x_tag="depth",
-        title="Training loss per depth (no KR, no ResNet)"
+        experiments=[(1, "no KR + no ResNet")],
+        y_tag="train loss", x_tag="depth",
+        title="Training loss per depth"
     )
     make_exp_plot(
-        exp=1, y_tag="train accuracy", x_tag="depth",
-        title="Training accuracy per depth (no KR, no ResNet)"
+        experiments=[(1, "no KR + no ResNet")],
+        y_tag="train accuracy", x_tag="depth",
+        title="Training accuracy per depth"
     )
 
 
