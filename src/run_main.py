@@ -40,6 +40,13 @@ def run_once(depth, test: int):
                 res_net_mode=ResNetMode.NONE
             )
         case 3:
+            d = run_experiment(
+                seed=42,
+                depth=depth,
+                use_kr=KernelRegressionMode.AFTER_EACH_BLOCK,
+                res_net_mode=ResNetMode.ADD
+            )
+        case _:
             assert False
     # test_accuracy = d["test accuracy"]
     # test_loss = d["test loss"]

@@ -121,7 +121,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     ***********************************************************************************************
     """
 
-    def forward(self, data, mode="train") -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, data, mode="train", allow_kr=True) -> tuple[torch.Tensor, torch.Tensor]:
         # x, edge_index = data.x, data.edge_index
         if self.kernel_regression_loss and mode == "train":
             layers = self.model.verbose_forward(data)
@@ -142,7 +142,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
         loss = F.nll_loss(x[mask], data.y[mask])
 
         # add KR loss if applicable
-        if self.kernel_regression_loss and mode == "train":
+        if self.kernel_regression_loss and mode == "train" and allow_kr:
             self.add_kernel_regression_loss(loss=loss, layers=layers, mask=mask, data=data)
 
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()

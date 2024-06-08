@@ -69,9 +69,9 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
     )
 
     # test model to get accuracy
-    train_loss, train_acc = model.forward(dataset[0], mode="train")
-    val_loss, val_acc = model.forward(dataset[0], mode="val")
-    test_loss, test_acc = model.forward(dataset[0], mode="test")
+    train_loss, train_acc = model.forward(dataset[0], mode="train", allow_kr=False)
+    val_loss, val_acc = model.forward(dataset[0], mode="val", allow_kr=False)
+    test_loss, test_acc = model.forward(dataset[0], mode="test", allow_kr=False)
 
     return {
         "train loss": train_loss.item(),
@@ -102,7 +102,7 @@ def main():
         epilog='Thanks for using this tool'
     )
     parser.add_argument(
-        '--kr', type=str, choices=["off", "before", "after"], required=True,
+        '--kr', type=str, choices=["off", "all", "before", "after"], required=True,
         help="Choose Kernel regression settings either off, or before/after the skip connection."
     )
     parser.add_argument(
@@ -119,6 +119,8 @@ def main():
     match args.kr:
         case "off":
             use_kr = KernelRegressionMode.OFF
+        case "all":
+            use_kr = KernelRegressionMode.AFTER_EACH_BLOCK
         case "before":
             use_kr = KernelRegressionMode.BEFORE_SKIP_CONNECTION
         case "after":
