@@ -23,8 +23,6 @@ def remove_dir(name):
 
 
 def run_once(depth, test: int):
-    gc.collect()
-    remove_dir("lightning_logs")
     d = {}
     match test:
         case 1:
@@ -59,7 +57,6 @@ main function
 
 def main():
     remove_dir("lightning_logs")
-
     # Run without KR and without skip connections
     depths = list(range(1, 30))
     exp = 2
