@@ -51,6 +51,7 @@ def run_experiment(seed: int, depth: int, use_kr: KernelRegressionMode, res_net_
     # make trainer
     trainer = L.Trainer(
         max_epochs=params.max_epochs,
+        min_epochs=params.min_epochs,
         callbacks=[
             EarlyStopping(
                 monitor="training loss", mode="min",

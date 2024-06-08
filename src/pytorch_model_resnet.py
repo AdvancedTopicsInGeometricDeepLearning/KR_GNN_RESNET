@@ -1,5 +1,6 @@
 """
-File that implements a model that preforms addition
+File that implements a model that preforms addition or multiplication.
+Similar to ResNet block.
 """
 
 import torch

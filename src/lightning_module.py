@@ -117,6 +117,34 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
 
     """
     ***********************************************************************************************
+    for calculating KR
+    ***********************************************************************************************
+    """
+
+    def another_add_kernel_regression_loss(
+            self,
+            loss: torch.Tensor,
+            layers: list[torch.Tensor],
+            mask: torch.Tensor,
+            data: torch_geometric.data.Data
+    ):
+        assert self.kernel_regression_loss
+        criterion_mask = mask
+        root_nodes_idx = torch.where(criterion_mask)[0]
+        relevant_edges = sum(data.edge_index[1] == i for i in root_nodes_idx).bool()
+        assert len(relevant_edges) != 0, "Warning got graph without edges in embedding phase"
+        relevant_nodes = torch.cat([data.edge_index[0][relevant_edges], root_nodes_idx], dim=0)
+        relevant_nodes = torch.unique(relevant_nodes)
+        edge_index = torch_geometric.utils.subgraph(relevant_nodes, data.edge_index,
+                                                    num_nodes=data.x.size(0))[0]
+        try:
+            added_loss = self.calculate_kernel_regression_loss(edge_index=edge_index, out=layers)
+            loss += added_loss
+        except RuntimeError as re:
+            return
+
+    """
+    ***********************************************************************************************
     API for pytorch lightning
     ***********************************************************************************************
     """
@@ -124,8 +152,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     def forward(self, data, mode="train", allow_kr=True) -> tuple[torch.Tensor, torch.Tensor]:
         # x, edge_index = data.x, data.edge_index
         if self.kernel_regression_loss and mode == "train":
-            layers = self.model.verbose_forward(data)
-            x = layers[-1]
+            (x, kr_checkpoints) = self.model.verbose_forward(data)
         else:
             x = self.model.forward(data)
 
@@ -143,7 +170,7 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
 
         # add KR loss if applicable
         if self.kernel_regression_loss and mode == "train" and allow_kr:
-            self.add_kernel_regression_loss(loss=loss, layers=layers, mask=mask, data=data)
+            self.add_kernel_regression_loss(loss=loss, layers=kr_checkpoints, mask=mask, data=data)
 
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()
         return loss, acc

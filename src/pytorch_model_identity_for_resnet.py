@@ -1,5 +1,6 @@
 """
-File that implements a model that does nothing at all
+File that implements a model that does nothing at all. This is used for marking the
+start of a ResNet block.
 """
 
 import torch
@@ -11,7 +12,7 @@ Identity
 """
 
 
-class Identity(torch.nn.Module):
+class IdentityForResNet(torch.nn.Module):
     """
     ***********************************************************************************************
     The pytorch model that does nothing

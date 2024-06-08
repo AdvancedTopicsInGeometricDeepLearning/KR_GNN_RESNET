@@ -4,11 +4,12 @@ File that implements a classifier for nodes in a graph using a deep GNN layer an
 
 import torch
 import torch.nn.functional as F
+from torch import Tensor
 from torch_geometric.datasets import Planetoid
 
 from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
 from pytorch_model_gnn import GNNEncoder
-from pytorch_model_saver import Saver
+from pytorch_model_saver_for_kr import SaverForKR
 
 """
 ***************************************************************************************************
@@ -38,7 +39,6 @@ class GNNNodeClassifier(torch.nn.Module):
             params.class_of_activation(),
             torch.nn.Linear(in_features=params.hidden_dim, out_features=params.out_features),
             torch.nn.LogSoftmax(dim=1),
-            Saver(list_to_save_to=self.list_to_save_to)
         )
 
     def forward(self, data):
@@ -46,10 +46,10 @@ class GNNNodeClassifier(torch.nn.Module):
         self.list_to_save_to.clear()
         return x
 
-    def verbose_forward(self, data):
+    def verbose_forward(self, data) -> tuple[Tensor, list[Tensor]]:
         self.list_to_save_to.clear()
-        self.model.forward(data)
-        return self.list_to_save_to
+        x = self.model.forward(data)
+        return x, self.list_to_save_to
 
 
 """
@@ -62,37 +62,34 @@ test_model = """GNNNodeClassifier(
   (model): Sequential(
     (0): GNNEncoder(
       (model): Sequential(
-        (0) - Saver(): x -> x
-        (1) - Identity(): x -> x0
-        (2) - GCNConv(1433, 32): x, edge_index -> x
-        (3) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (4) - ELU(alpha=1.0, inplace=True): x -> x
-        (5) - Saver(): x -> x
-        (6) - Identity(): x -> x1
-        (7) - GCNConv(32, 32): x, edge_index -> x
-        (8) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (9) - ELU(alpha=1.0, inplace=True): x -> x
-        (10) - ResNet(): x, x1 -> x
-        (11) - Saver(): x -> x
-        (12) - Identity(): x -> x2
-        (13) - GCNConv(32, 32): x, edge_index -> x
-        (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (15) - ELU(alpha=1.0, inplace=True): x -> x
-        (16) - ResNet(): x, x2 -> x
-        (17) - Saver(): x -> x
-        (18) - Identity(): x -> x3
-        (19) - GCNConv(32, 32): x, edge_index -> x
-        (20) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (21) - ELU(alpha=1.0, inplace=True): x -> x
-        (22) - ResNet(): x, x3 -> x
-        (23) - Saver(): x -> x
+        (0) - IdentityForResNet(): x -> x0
+        (1) - GCNConv(1433, 32): x, edge_index -> x
+        (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (3) - ELU(alpha=1.0, inplace=True): x -> x
+        (4) - SaverForKR(): x -> x
+        (5) - IdentityForResNet(): x -> x1
+        (6) - GCNConv(32, 32): x, edge_index -> x
+        (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (8) - ELU(alpha=1.0, inplace=True): x -> x
+        (9) - ResNet(): x, x1 -> x
+        (10) - SaverForKR(): x -> x
+        (11) - IdentityForResNet(): x -> x2
+        (12) - GCNConv(32, 32): x, edge_index -> x
+        (13) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (14) - ELU(alpha=1.0, inplace=True): x -> x
+        (15) - ResNet(): x, x2 -> x
+        (16) - SaverForKR(): x -> x
+        (17) - IdentityForResNet(): x -> x3
+        (18) - GCNConv(32, 32): x, edge_index -> x
+        (19) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (20) - ELU(alpha=1.0, inplace=True): x -> x
+        (21) - ResNet(): x, x3 -> x
       )
     )
     (1): Linear(in_features=32, out_features=32, bias=True)
     (2): ELU(alpha=1.0)
     (3): Linear(in_features=32, out_features=7, bias=True)
     (4): LogSoftmax(dim=1)
-    (5): Saver()
   )
 )"""
 
@@ -119,9 +116,9 @@ def test():
     # print model
     print(classifier)
     assert str(classifier) == test_model
-    verbose_out = classifier.verbose_forward(data)
-    print(len(verbose_out))
-    assert len(verbose_out) == 6
+    x, kr_checkpoints = classifier.verbose_forward(data)
+    print(len(kr_checkpoints))
+    assert len(kr_checkpoints) == 3
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -136,7 +133,7 @@ def test():
         loss = F.nll_loss(out[data.train_mask], data.y[data.train_mask])
         loss.backward()
         optimizer.step()
-        print(f"loss = {loss}")
+        print(f"epoch = {epoch}, loss = {loss}")
 
     assert loss < 0.0007
 

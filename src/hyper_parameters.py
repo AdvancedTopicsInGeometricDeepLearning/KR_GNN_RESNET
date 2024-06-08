@@ -50,6 +50,7 @@ class Parameters:
     max_edges_for_kr_loss: int
     batch_size: int
     max_epochs: int
+    min_epochs: int
     early_stopping_patience: int
     learning_rate: float
     skip_connection_stride: int
@@ -72,11 +73,12 @@ class Parameters:
         self.class_of_gnn = torch_geometric.nn.GCNConv
         self.class_of_activation = torch.nn.ELU
         self.kernel_regression_mode = kernel_regression_mode
-        self.add_regularization_to_kernel_regression = False
-        self.use_self_in_loss_for_kernel_regression = False
+        self.add_regularization_to_kernel_regression = True
+        self.use_self_in_loss_for_kernel_regression = True
         self.max_edges_for_kr_loss = 10000
         self.batch_size = 1
         self.max_epochs = 100
+        self.min_epochs = 30
         self.early_stopping_patience = 3
         self.learning_rate = 1e-2
         self.skip_connection_stride = 1

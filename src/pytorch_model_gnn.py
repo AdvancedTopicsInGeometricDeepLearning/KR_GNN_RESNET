@@ -10,9 +10,9 @@ import torch_geometric
 from torch_geometric.datasets import Planetoid
 
 from hyper_parameters import Parameters, KernelRegressionMode, ResNetMode
-from pytorch_model_identity import Identity
+from pytorch_model_identity_for_resnet import IdentityForResNet
 from pytorch_model_resnet import ResNet
-from pytorch_model_saver import Saver
+from pytorch_model_saver_for_kr import SaverForKR
 
 """
 ***************************************************************************************************
@@ -85,14 +85,14 @@ class GNNEncoder(torch.nn.Module):
         use_res_net = params.res_net_mode != ResNetMode.NONE
         layers = []
 
-        if params.kernel_regression_mode != KernelRegressionMode.OFF:
-            layers += [(Saver(list_to_save_to=self.list_to_save_to), 'x -> x')]
+        # if params.kernel_regression_mode != KernelRegressionMode.OFF:
+        #     layers += [(SaverForKR(list_to_save_to=self.list_to_save_to), 'x -> x')]
 
         previous_output_channels = in_channels
         for d in range(params.depth):
             # save name of x
             if use_res_net:
-                layers.append((Identity(), f"x -> x{d}"))
+                layers.append((IdentityForResNet(), f"x -> x{d}"))
 
             # add GNN layer
             gnn = self.get_layer(class_of_gnn=params.class_of_gnn,
@@ -113,17 +113,19 @@ class GNNEncoder(torch.nn.Module):
             use_res_net_now = correct_depth and (d + 1 - params.skip_connection_stride > 0)
             if use_res_net and use_res_net_now:
                 if params.kernel_regression_mode == KernelRegressionMode.BEFORE_SKIP_CONNECTION:
-                    layers.append(Saver(list_to_save_to=self.list_to_save_to))
+                    layers.append(SaverForKR(list_to_save_to=self.list_to_save_to))
                 layers.append((
                     ResNet(params=params),
                     f"x, x{d + 1 - params.skip_connection_stride} -> x"
                 ))
                 if params.kernel_regression_mode == KernelRegressionMode.AFTER_SKIP_CONNECTION:
-                    layers.append(Saver(list_to_save_to=self.list_to_save_to))
+                    layers.append(SaverForKR(list_to_save_to=self.list_to_save_to))
 
             # add layer to save output
             if params.kernel_regression_mode == KernelRegressionMode.AFTER_EACH_BLOCK:
-                layers.append(Saver(list_to_save_to=self.list_to_save_to))
+                is_last_iteration = (d == (params.depth - 1))
+                if not is_last_iteration:
+                    layers.append(SaverForKR(list_to_save_to=self.list_to_save_to))
 
             previous_output_channels = out_channels
 
@@ -142,30 +144,28 @@ Test
 
 test_model = """GNNEncoder(
   (model): Sequential(
-    (0) - Saver(): x -> x
-    (1) - Identity(): x -> x0
-    (2) - GCNConv(1433, 32): x, edge_index -> x
-    (3) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (4) - ELU(alpha=1.0, inplace=True): x -> x
-    (5) - Saver(): x -> x
-    (6) - Identity(): x -> x1
-    (7) - GCNConv(32, 32): x, edge_index -> x
-    (8) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (9) - ELU(alpha=1.0, inplace=True): x -> x
-    (10) - ResNet(): x, x1 -> x
-    (11) - Saver(): x -> x
-    (12) - Identity(): x -> x2
-    (13) - GCNConv(32, 32): x, edge_index -> x
-    (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (15) - ELU(alpha=1.0, inplace=True): x -> x
-    (16) - ResNet(): x, x2 -> x
-    (17) - Saver(): x -> x
-    (18) - Identity(): x -> x3
-    (19) - GCNConv(32, 32): x, edge_index -> x
-    (20) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-    (21) - ELU(alpha=1.0, inplace=True): x -> x
-    (22) - ResNet(): x, x3 -> x
-    (23) - Saver(): x -> x
+    (0) - IdentityForResNet(): x -> x0
+    (1) - GCNConv(1433, 32): x, edge_index -> x
+    (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (3) - ELU(alpha=1.0, inplace=True): x -> x
+    (4) - SaverForKR(): x -> x
+    (5) - IdentityForResNet(): x -> x1
+    (6) - GCNConv(32, 32): x, edge_index -> x
+    (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (8) - ELU(alpha=1.0, inplace=True): x -> x
+    (9) - ResNet(): x, x1 -> x
+    (10) - SaverForKR(): x -> x
+    (11) - IdentityForResNet(): x -> x2
+    (12) - GCNConv(32, 32): x, edge_index -> x
+    (13) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (14) - ELU(alpha=1.0, inplace=True): x -> x
+    (15) - ResNet(): x, x2 -> x
+    (16) - SaverForKR(): x -> x
+    (17) - IdentityForResNet(): x -> x3
+    (18) - GCNConv(32, 32): x, edge_index -> x
+    (19) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+    (20) - ELU(alpha=1.0, inplace=True): x -> x
+    (21) - ResNet(): x, x3 -> x
   )
 )"""
 
@@ -184,7 +184,8 @@ def test():
 
     # make gnn encoder
     params = Parameters(
-        in_features=1433, out_features=7, depth=4, kernel_regression_mode=KernelRegressionMode.OFF,
+        in_features=1433, out_features=7, depth=4,
+        kernel_regression_mode=KernelRegressionMode.AFTER_EACH_BLOCK,
         res_net_mode=ResNetMode.ADD
     )
     saved = []
@@ -194,10 +195,10 @@ def test():
     print(gnn_encoder)
     assert str(gnn_encoder) == test_model
     gnn_encoder.forward(data)
-    assert len(saved) == 5
+    assert len(saved) == 3
     gnn_encoder.forward(data)
-    assert len(saved) == 10
-    assert torch.allclose(saved[-1], gnn_encoder.forward(data))
+    assert len(saved) == 6
+    # assert torch.allclose(saved[-1], gnn_encoder.forward(data))
 
     # start training
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

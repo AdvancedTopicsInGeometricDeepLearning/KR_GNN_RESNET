@@ -11,7 +11,7 @@ Saver
 """
 
 
-class Saver(torch.nn.Module):
+class SaverForKR(torch.nn.Module):
     """
     ***********************************************************************************************
     The pytorch model saves the intermediate results in forward
@@ -38,7 +38,7 @@ def test():
     # make dataset
     x = torch.ones((4, 4))
     layers = []
-    model = Saver(list_to_save_to=layers)
+    model = SaverForKR(list_to_save_to=layers)
     print(model)
     y = model(x)
     assert torch.allclose(y, x)

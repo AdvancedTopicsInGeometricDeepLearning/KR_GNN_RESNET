@@ -1,10 +1,10 @@
 {
-    "train loss": 0.0007173331687226892,
-    "val loss": 2.7816572189331055,
-    "test loss": 2.7359654903411865,
+    "train loss": 7.4226377364539076e-06,
+    "val loss": 2.9703774452209473,
+    "test loss": 3.0193769931793213,
     "train accuracy": 1.0,
-    "val accuracy": 0.5619999766349792,
-    "test accuracy": 0.5609999895095825,
+    "val accuracy": 0.6140000224113464,
+    "test accuracy": 0.6389999985694885,
     "train epochs": 100,
     "depth": 7,
     "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - Saver(): x -> x\n          (1) - GCNConv(500, 32): x, edge_index -> x\n          (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (3) - ELU(alpha=1.0, inplace=True): x -> x\n          (4) - Saver(): x -> x\n          (5) - GCNConv(32, 32): x, edge_index -> x\n          (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (7) - ELU(alpha=1.0, inplace=True): x -> x\n          (8) - Saver(): x -> x\n          (9) - GCNConv(32, 32): x, edge_index -> x\n          (10) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (11) - ELU(alpha=1.0, inplace=True): x -> x\n          (12) - Saver(): x -> x\n          (13) - GCNConv(32, 32): x, edge_index -> x\n          (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (15) - ELU(alpha=1.0, inplace=True): x -> x\n          (16) - Saver(): x -> x\n          (17) - GCNConv(32, 32): x, edge_index -> x\n          (18) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (19) - ELU(alpha=1.0, inplace=True): x -> x\n          (20) - Saver(): x -> x\n          (21) - GCNConv(32, 32): x, edge_index -> x\n          (22) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (23) - ELU(alpha=1.0, inplace=True): x -> x\n          (24) - Saver(): x -> x\n          (25) - GCNConv(32, 32): x, edge_index -> x\n          (26) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (27) - ELU(alpha=1.0, inplace=True): x -> x\n          (28) - Saver(): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n      (5): Saver()\n    )\n  )\n)"
