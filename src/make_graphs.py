@@ -69,12 +69,12 @@ main function
 
 def main():
     make_exp_plot(
-        experiments=[(1, "no KR + no ResNet")],
+        experiments=[(1, "no KR + no ResNet"), (2, "KR + no ResNet")],
         y_tag="train loss", x_tag="depth",
         title="Training loss per depth"
     )
     make_exp_plot(
-        experiments=[(1, "no KR + no ResNet")],
+        experiments=[(1, "no KR + no ResNet"), (2, "KR + no ResNet")],
         y_tag="train accuracy", x_tag="depth",
         title="Training accuracy per depth"
     )
