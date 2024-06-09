@@ -70,19 +70,17 @@ test_model = """GNNNodeClassifier(
         (6) - GCNConv(32, 32): x, edge_index -> x
         (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
         (8) - ELU(alpha=1.0, inplace=True): x -> x
-        (9) - ResNet(): x, x1 -> x
-        (10) - SaverForKR(): x -> x
-        (11) - IdentityForResNet(): x -> x2
-        (12) - GCNConv(32, 32): x, edge_index -> x
-        (13) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (14) - ELU(alpha=1.0, inplace=True): x -> x
-        (15) - ResNet(): x, x2 -> x
-        (16) - SaverForKR(): x -> x
-        (17) - IdentityForResNet(): x -> x3
-        (18) - GCNConv(32, 32): x, edge_index -> x
-        (19) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
-        (20) - ELU(alpha=1.0, inplace=True): x -> x
-        (21) - ResNet(): x, x3 -> x
+        (9) - SaverForKR(): x -> x
+        (10) - IdentityForResNet(): x -> x2
+        (11) - GCNConv(32, 32): x, edge_index -> x
+        (12) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (13) - ELU(alpha=1.0, inplace=True): x -> x
+        (14) - SaverForKR(): x -> x
+        (15) - IdentityForResNet(): x -> x3
+        (16) - GCNConv(32, 32): x, edge_index -> x
+        (17) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x
+        (18) - ELU(alpha=1.0, inplace=True): x -> x
+        (19) - ResNet(): x, x2 -> x
       )
     )
     (1): Linear(in_features=32, out_features=32, bias=True)
