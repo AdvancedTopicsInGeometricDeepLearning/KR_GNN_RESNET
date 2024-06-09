@@ -68,15 +68,36 @@ main function
 
 
 def main():
+    experiments = [(1, "no KR + no ResNet"), (2, "KR + no ResNet")]
     make_exp_plot(
-        experiments=[(1, "no KR + no ResNet"), (2, "KR + no ResNet")],
+        experiments=experiments,
         y_tag="train loss", x_tag="depth",
         title="Training loss per depth"
     )
     make_exp_plot(
-        experiments=[(1, "no KR + no ResNet"), (2, "KR + no ResNet")],
+        experiments=experiments,
         y_tag="train accuracy", x_tag="depth",
         title="Training accuracy per depth"
+    )
+    make_exp_plot(
+        experiments=experiments,
+        y_tag="val loss", x_tag="depth",
+        title="Validation loss per depth"
+    )
+    make_exp_plot(
+        experiments=experiments,
+        y_tag="val accuracy", x_tag="depth",
+        title="Validation accuracy per depth"
+    )
+    make_exp_plot(
+        experiments=experiments,
+        y_tag="test loss", x_tag="depth",
+        title="Testing loss per depth"
+    )
+    make_exp_plot(
+        experiments=experiments,
+        y_tag="test accuracy", x_tag="depth",
+        title="Testing accuracy per depth"
     )
 
 
