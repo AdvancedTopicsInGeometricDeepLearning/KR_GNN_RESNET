@@ -7,7 +7,7 @@ import lightning as L
 import torch
 import torch.nn.functional as F
 import torch_geometric.data
-from lightning.pytorch.utilities.types import STEP_OUTPUT, _METRIC
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import optim
 
 from gaussian_kernel import GaussianKernel
@@ -50,49 +50,6 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
     ***********************************************************************************************
     """
 
-    def calculate_kernel_regression_loss(
-            self, edge_index: torch.Tensor, out: list[torch.Tensor],
-    ) -> torch.Tensor:
-        loss = [None] * len(out)
-        global_loss = torch.zeros(())
-        for i in range(1, len(out) - 1):
-            relevant_edges = edge_index.T
-            if relevant_edges.shape[0] == 0:
-                loss[i] = None
-                continue
-            elif relevant_edges.shape[0] > self.params.max_edges_for_kr_loss:
-                idx_to_take = torch.randperm(relevant_edges.shape[0])[
-                              :self.cfg.training.max_edges_for_loss
-                              ]
-                relevant_edges = relevant_edges[idx_to_take]
-            neighbours_emb = out[i - 1]
-            target_emb = out[i]
-            source_nodes, target_nodes = torch.split(relevant_edges, 1, dim=1)
-            source_nodes = source_nodes.flatten()
-            target_nodes = target_nodes.flatten()
-
-            # Need to detach the neighbours from the loss calculation
-            neighbours_emb = neighbours_emb.clone()
-
-            if neighbours_emb.requires_grad:
-                neighbours_emb.register_hook(lambda grad: torch.zeros_like(grad))
-            selected_neighbours = neighbours_emb[source_nodes]
-
-            selected_targets = target_emb[target_nodes]
-
-            lvl_loss = self.kernel_regression_loss(x=selected_targets, y=selected_neighbours)
-            if self.params.use_self_in_loss_for_kernel_regression:
-                lvl_loss += self.kernel_regression_loss(x=selected_targets,
-                                                        y=neighbours_emb[target_nodes])
-            if torch.any(torch.isnan(lvl_loss)).item():
-                print("Warning: got nan in loss computation")
-                loss[i] = None
-                continue
-            self.log(f"KR loss of level {i}", lvl_loss.item())
-            loss[i] = lvl_loss
-            global_loss += lvl_loss
-        return global_loss
-
     def get_kernel_regression_loss(
             self,
             kr_checkpoints: list[torch.Tensor],
@@ -106,47 +63,6 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
             layer_out = layer_out[mask]
             kr_loss += self.kernel_regression_loss(x=layer_out, y=y)
         return kr_loss * self.params.kernel_regression_loss_lambda
-        # criterion_mask = mask
-        # root_nodes_idx = torch.where(criterion_mask)[0]
-        # relevant_edges = sum(data.edge_index[1] == i for i in root_nodes_idx).bool()
-        # assert len(relevant_edges) != 0, "Warning got graph without edges in embedding phase"
-        # relevant_nodes = torch.cat([data.edge_index[0][relevant_edges], root_nodes_idx], dim=0)
-        # relevant_nodes = torch.unique(relevant_nodes)
-        # edge_index = torch_geometric.utils.subgraph(relevant_nodes, data.edge_index,
-        #                                             num_nodes=data.x.size(0))[0]
-        # try:
-        #     added_loss = self.calculate_kernel_regression_loss(edge_index=edge_index, out=layers)
-        #     return added_loss
-        # except RuntimeError as re:
-        #     return
-
-    """
-    ***********************************************************************************************
-    for calculating KR
-    ***********************************************************************************************
-    """
-
-    def another_add_kernel_regression_loss(
-            self,
-            loss: torch.Tensor,
-            layers: list[torch.Tensor],
-            mask: torch.Tensor,
-            data: torch_geometric.data.Data
-    ):
-        assert self.kernel_regression_loss
-        criterion_mask = mask
-        root_nodes_idx = torch.where(criterion_mask)[0]
-        relevant_edges = sum(data.edge_index[1] == i for i in root_nodes_idx).bool()
-        assert len(relevant_edges) != 0, "Warning got graph without edges in embedding phase"
-        relevant_nodes = torch.cat([data.edge_index[0][relevant_edges], root_nodes_idx], dim=0)
-        relevant_nodes = torch.unique(relevant_nodes)
-        edge_index = torch_geometric.utils.subgraph(relevant_nodes, data.edge_index,
-                                                    num_nodes=data.x.size(0))[0]
-        try:
-            added_loss = self.calculate_kernel_regression_loss(edge_index=edge_index, out=layers)
-            loss += added_loss
-        except RuntimeError as re:
-            return
 
     """
     ***********************************************************************************************
@@ -175,7 +91,8 @@ class PytorchLightningModuleNodeClassifier(L.LightningModule):
 
         # add KR loss if applicable
         if self.kernel_regression_loss and mode == "train" and allow_kr:
-            loss += self.get_kernel_regression_loss(kr_checkpoints=kr_checkpoints, mask=mask, data=data)
+            loss += self.get_kernel_regression_loss(kr_checkpoints=kr_checkpoints, mask=mask,
+                                                    data=data)
 
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()
         return loss, acc
