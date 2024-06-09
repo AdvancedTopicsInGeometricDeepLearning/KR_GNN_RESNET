@@ -1,5 +1,0 @@
-defaults:
-  - default
-  - _self_
-name: ogbn-arxiv
-params: {}
