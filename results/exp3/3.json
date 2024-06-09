@@ -1,0 +1,11 @@
+{
+    "train loss": 4.65900711787981e-06,
+    "val loss": 1.935046672821045,
+    "test loss": 2.088040828704834,
+    "train accuracy": 1.0,
+    "val accuracy": 0.7179999947547913,
+    "test accuracy": 0.7059999704360962,
+    "train epochs": 37,
+    "depth": 3,
+    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - IdentityForResNet(): x -> x0\n          (1) - GCNConv(500, 32): x, edge_index -> x\n          (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (3) - ELU(alpha=1.0, inplace=True): x -> x\n          (4) - SaverForKR(): x -> x\n          (5) - IdentityForResNet(): x -> x1\n          (6) - GCNConv(32, 32): x, edge_index -> x\n          (7) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (8) - ELU(alpha=1.0, inplace=True): x -> x\n          (9) - SaverForKR(): x -> x\n          (10) - IdentityForResNet(): x -> x2\n          (11) - GCNConv(32, 32): x, edge_index -> x\n          (12) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (13) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n    )\n  )\n)"
+}

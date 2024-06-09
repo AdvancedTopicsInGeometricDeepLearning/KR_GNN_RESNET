@@ -46,7 +46,6 @@ class Parameters:
     class_of_activation: Callable
     kernel_regression_mode: KernelRegressionMode
     add_regularization_to_kernel_regression: bool
-    use_self_in_loss_for_kernel_regression: bool
     max_edges_for_kr_loss: int
     kernel_regression_loss_lambda: float
     batch_size: int
@@ -75,7 +74,6 @@ class Parameters:
         self.class_of_activation = torch.nn.ELU
         self.kernel_regression_mode = kernel_regression_mode
         self.add_regularization_to_kernel_regression = True
-        self.use_self_in_loss_for_kernel_regression = True
         self.max_edges_for_kr_loss = 10000
         self.kernel_regression_loss_lambda = 1.0
         self.batch_size = 1
@@ -83,5 +81,5 @@ class Parameters:
         self.min_epochs = 30
         self.early_stopping_patience = 3
         self.learning_rate = 1e-2
-        self.skip_connection_stride = 1
+        self.skip_connection_stride = 2
         self.res_net_mode = res_net_mode

@@ -73,7 +73,7 @@ main function
 
 
 def main():
-    experiments = [(1, "no KR + no ResNet"), (2, "KR + no ResNet")]
+    experiments = [(1, "no KR + no ResNet"), (2, "KR + no ResNet"), (3, "KR + ResNet 2")]
     make_exp_plot(
         experiments=experiments,
         y_tag="train loss", x_tag="depth",

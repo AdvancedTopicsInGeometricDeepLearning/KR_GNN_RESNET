@@ -1,0 +1,11 @@
+{
+    "train loss": 4.927304075863503e-07,
+    "val loss": 2.11782169342041,
+    "test loss": 2.4073591232299805,
+    "train accuracy": 1.0,
+    "val accuracy": 0.6800000071525574,
+    "test accuracy": 0.6669999957084656,
+    "train epochs": 81,
+    "depth": 1,
+    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - IdentityForResNet(): x -> x0\n          (1) - GCNConv(500, 32): x, edge_index -> x\n          (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (3) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n    )\n  )\n)"
+}
