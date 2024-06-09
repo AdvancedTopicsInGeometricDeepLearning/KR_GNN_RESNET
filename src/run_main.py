@@ -65,7 +65,7 @@ def main():
     remove_dir("lightning_logs")
     # Run without KR and without skip connections
     depths = list(range(1, 30))
-    exp = 2
+    exp = 1
     remove_dir(f"results/exp{exp}")
     Path(f"results/exp{exp}").mkdir(parents=True)
     # accuracies = []
