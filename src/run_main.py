@@ -74,7 +74,7 @@ main function
 def main():
     remove_dir("lightning_logs")
     # Run without KR and without skip connections
-    depths = list(range(1, 30))
+    depths = list(range(30, 60))
     # run_experiment_on_multiple_depths(exp=1, depths=depths)
     run_experiment_on_multiple_depths(exp=2, depths=depths)
 

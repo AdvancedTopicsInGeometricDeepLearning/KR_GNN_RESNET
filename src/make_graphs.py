@@ -46,7 +46,10 @@ def get_xy_from_experiment(exp: int, y_tag: str, x_tag: str):
     return x, y
 
 
-def make_exp_plot(experiments: list[tuple[int, str]], y_tag: str, x_tag: str, title: str):
+def make_exp_plot(
+        experiments: list[tuple[int, str]], y_tag: str, x_tag: str, title: str,
+        x_title: str, y_title: str
+):
     list_of_xy = []
     for exp, _ in experiments:
         xy = get_xy_from_experiment(exp=exp, x_tag=x_tag, y_tag=y_tag)
@@ -56,6 +59,8 @@ def make_exp_plot(experiments: list[tuple[int, str]], y_tag: str, x_tag: str, ti
     fig, ax = plt.subplots()
     for (x, y), (_, t) in zip(list_of_xy, experiments):
         ax.plot(x, y, label=t)
+    ax.set_xlabel(x_title)
+    ax.set_ylabel(y_title)
     ax.legend()
     save_plot(title=title)
 
@@ -72,32 +77,38 @@ def main():
     make_exp_plot(
         experiments=experiments,
         y_tag="train loss", x_tag="depth",
-        title="Training loss per depth"
+        title="Training loss per depth",
+        x_title="depth", y_title="training loss"
     )
     make_exp_plot(
         experiments=experiments,
         y_tag="train accuracy", x_tag="depth",
-        title="Training accuracy per depth"
+        title="Training accuracy per depth",
+        x_title="depth", y_title="training accuracy"
     )
     make_exp_plot(
         experiments=experiments,
         y_tag="val loss", x_tag="depth",
-        title="Validation loss per depth"
+        title="Validation loss per depth",
+        x_title="depth", y_title="validation loss"
     )
     make_exp_plot(
         experiments=experiments,
         y_tag="val accuracy", x_tag="depth",
-        title="Validation accuracy per depth"
+        title="Validation accuracy per depth",
+        x_title="depth", y_title="validation accuracy"
     )
     make_exp_plot(
         experiments=experiments,
         y_tag="test loss", x_tag="depth",
-        title="Testing loss per depth"
+        title="Testing loss per depth",
+        x_title="depth", y_title="testing loss"
     )
     make_exp_plot(
         experiments=experiments,
         y_tag="test accuracy", x_tag="depth",
-        title="Testing accuracy per depth"
+        title="Testing accuracy per depth",
+        x_title="depth", y_title="testing accuracy"
     )
 
 
