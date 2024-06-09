@@ -48,6 +48,7 @@ class Parameters:
     add_regularization_to_kernel_regression: bool
     use_self_in_loss_for_kernel_regression: bool
     max_edges_for_kr_loss: int
+    kernel_regression_loss_lambda: float
     batch_size: int
     max_epochs: int
     min_epochs: int
@@ -76,6 +77,7 @@ class Parameters:
         self.add_regularization_to_kernel_regression = True
         self.use_self_in_loss_for_kernel_regression = True
         self.max_edges_for_kr_loss = 10000
+        self.kernel_regression_loss_lambda = 1.0
         self.batch_size = 1
         self.max_epochs = 100
         self.min_epochs = 30

@@ -1,11 +1,11 @@
 {
-    "train loss": 7.311477361326979e-07,
-    "val loss": 2.4684085845947266,
-    "test loss": 2.6598920822143555,
+    "train loss": 8.046603170441813e-07,
+    "val loss": 2.0170772075653076,
+    "test loss": 2.220947265625,
     "train accuracy": 1.0,
-    "val accuracy": 0.6679999828338623,
-    "test accuracy": 0.6620000004768372,
-    "train epochs": 100,
+    "val accuracy": 0.7319999933242798,
+    "test accuracy": 0.718999981880188,
+    "train epochs": 51,
     "depth": 2,
-    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - Saver(): x -> x\n          (1) - GCNConv(500, 32): x, edge_index -> x\n          (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (3) - ELU(alpha=1.0, inplace=True): x -> x\n          (4) - Saver(): x -> x\n          (5) - GCNConv(32, 32): x, edge_index -> x\n          (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (7) - ELU(alpha=1.0, inplace=True): x -> x\n          (8) - Saver(): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n      (5): Saver()\n    )\n  )\n)"
+    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - GCNConv(500, 32): x, edge_index -> x\n          (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (2) - ELU(alpha=1.0, inplace=True): x -> x\n          (3) - SaverForKR(): x -> x\n          (4) - GCNConv(32, 32): x, edge_index -> x\n          (5) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (6) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n    )\n  )\n)"
 }

@@ -1,11 +1,11 @@
 {
-    "train loss": 4.25970074502402e-06,
-    "val loss": 3.107628107070923,
-    "test loss": 2.856428384780884,
+    "train loss": 5.392055300035281e-06,
+    "val loss": 1.8476650714874268,
+    "test loss": 1.963927984237671,
     "train accuracy": 1.0,
-    "val accuracy": 0.5920000076293945,
-    "test accuracy": 0.6389999985694885,
-    "train epochs": 100,
+    "val accuracy": 0.734000027179718,
+    "test accuracy": 0.7269999980926514,
+    "train epochs": 39,
     "depth": 4,
-    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - Saver(): x -> x\n          (1) - GCNConv(500, 32): x, edge_index -> x\n          (2) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (3) - ELU(alpha=1.0, inplace=True): x -> x\n          (4) - Saver(): x -> x\n          (5) - GCNConv(32, 32): x, edge_index -> x\n          (6) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (7) - ELU(alpha=1.0, inplace=True): x -> x\n          (8) - Saver(): x -> x\n          (9) - GCNConv(32, 32): x, edge_index -> x\n          (10) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (11) - ELU(alpha=1.0, inplace=True): x -> x\n          (12) - Saver(): x -> x\n          (13) - GCNConv(32, 32): x, edge_index -> x\n          (14) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (15) - ELU(alpha=1.0, inplace=True): x -> x\n          (16) - Saver(): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n      (5): Saver()\n    )\n  )\n)"
+    "model": "PytorchLightningModuleNodeClassifier(\n  (model): GNNNodeClassifier(\n    (model): Sequential(\n      (0): GNNEncoder(\n        (model): Sequential(\n          (0) - GCNConv(500, 32): x, edge_index -> x\n          (1) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (2) - ELU(alpha=1.0, inplace=True): x -> x\n          (3) - SaverForKR(): x -> x\n          (4) - GCNConv(32, 32): x, edge_index -> x\n          (5) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (6) - ELU(alpha=1.0, inplace=True): x -> x\n          (7) - SaverForKR(): x -> x\n          (8) - GCNConv(32, 32): x, edge_index -> x\n          (9) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (10) - ELU(alpha=1.0, inplace=True): x -> x\n          (11) - SaverForKR(): x -> x\n          (12) - GCNConv(32, 32): x, edge_index -> x\n          (13) - BatchNorm1d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True): x -> x\n          (14) - ELU(alpha=1.0, inplace=True): x -> x\n        )\n      )\n      (1): Linear(in_features=32, out_features=32, bias=True)\n      (2): ELU(alpha=1.0)\n      (3): Linear(in_features=32, out_features=3, bias=True)\n      (4): LogSoftmax(dim=1)\n    )\n  )\n)"
 }
